@@ -13,6 +13,18 @@ using namespace std;
 #define PORT 10001
 #define STOP_THREAD 0
 
+enum OPERATION_TYPE
+{
+	OP_NONE = 0
+	, OP_RECV = 1
+	, OP_SEND = 2
+};
+
+struct EXTENDED_RIO_BUF : public RIO_BUF
+{
+	OPERATION_TYPE operationType;
+};
+
 const DWORD RIO_PENDING_RECVS = 100000;
 const DWORD RIO_PENDING_SENDS = 10000;
 const DWORD RECV_BUFFER_SIZE = 1024;
@@ -33,13 +45,15 @@ RIO_BUFFERID g_sendBufferId;
 RIO_BUFFERID g_recvBufferId;
 RIO_BUFFERID g_addrBufferId;
 
-RIO_BUF* g_sendRIOBufs = nullptr;
+EXTENDED_RIO_BUF* g_sendRIOBufs = nullptr;
 DWORD g_sendRIOBufTotalCount = 0;
 INT64 g_sendRIOBufIndex = 0;
 
-RIO_BUF* g_addrRIOBufs = nullptr;
+EXTENDED_RIO_BUF* g_addrRIOBufs = nullptr;
 DWORD g_addrRIOBufTotalCount = 0;
 INT64 g_addrRIOBufIndex = 0;
+
+CRITICAL_SECTION g_lock;
 
 static const DWORD NUM_IOCP_THREADS = 4;
 
@@ -77,6 +91,8 @@ int main()
 		cout << "listen() failed " << GetLastError() << endl;
 		return 0;
 	}
+
+	InitializeCriticalSectionAndSpinCount(&g_lock, 4096);
 
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 	DWORD bytes = 0;
@@ -129,12 +145,12 @@ int main()
 		}
 
 		DWORD offset = 0;
-		g_sendRIOBufs = new RIO_BUF[totalBufferCount];
+		g_sendRIOBufs = new EXTENDED_RIO_BUF[totalBufferCount];
 		g_sendRIOBufTotalCount = totalBufferCount;
 
 		for (DWORD i = 0; i < g_sendRIOBufTotalCount; ++i)
 		{
-			RIO_BUF* buffer = g_sendRIOBufs + i;
+			EXTENDED_RIO_BUF* buffer = g_sendRIOBufs + i;
 
 			buffer->BufferId = g_sendBufferId;
 			buffer->Offset = offset;
@@ -160,12 +176,12 @@ int main()
 		}
 
 		DWORD offset = 0;
-		g_addrRIOBufs = new RIO_BUF[totalBufferCount];
+		g_addrRIOBufs = new EXTENDED_RIO_BUF[totalBufferCount];
 		g_addrRIOBufTotalCount = totalBufferCount;
 
 		for (DWORD i = 0; i < g_addrRIOBufTotalCount; ++i)
 		{
-			RIO_BUF* buffer = g_addrRIOBufs + i;
+			EXTENDED_RIO_BUF* buffer = g_addrRIOBufs + i;
 
 			buffer->BufferId = g_addrBufferId;
 			buffer->Offset = offset;
@@ -191,11 +207,11 @@ int main()
 		}
 
 		DWORD offset = 0;
-		RIO_BUF* buffers = new RIO_BUF[totalBufferCount];
+		EXTENDED_RIO_BUF* buffers = new EXTENDED_RIO_BUF[totalBufferCount];
 
 		for (DWORD i = 0; i < totalBufferCount; ++i)
 		{
-			RIO_BUF* buffer = buffers + i;
+			EXTENDED_RIO_BUF* buffer = buffers + i;
 
 			buffer->BufferId = g_recvBufferId;
 			buffer->Offset = offset;
@@ -218,7 +234,6 @@ int main()
 	// Create IO thread
 	for (DWORD i = 0; i < NUM_IOCP_THREADS; ++i)
 	{
-		UINT temp;
 		auto result = _beginthreadex(NULL, 0, WorkerThread, NULL, 0, NULL);
 		if (result == 0)
 		{
@@ -255,7 +270,7 @@ int main()
 	return 0;
 }
 
-#define RIO_MAX_RESULTS 1000
+#define RIO_MAX_RESULTS 1024
 
 UINT WorkerThread(LPVOID arg)
 {
@@ -298,9 +313,52 @@ UINT WorkerThread(LPVOID arg)
 
 		for (DWORD i = 0; i < numResults; ++i)
 		{
-			// if recv
-			// else if send
-			// else 
+			EXTENDED_RIO_BUF* buffer = (EXTENDED_RIO_BUF*)rioResults[i].RequestContext;
+			if (buffer == nullptr)
+			{
+				cout << "WorkerThread() buffer is nullptr" << endl;
+				continue;
+			}
+
+			if (buffer->operationType == OP_RECV)
+			{
+				EnterCriticalSection(&g_lock);
+
+				const char* offset = g_recvBufferPointer + buffer->Offset;
+				EXTENDED_RIO_BUF* sendBuff = &(g_sendRIOBufs[g_sendRIOBufIndex++ % g_sendRIOBufTotalCount]);
+				if (sendBuff == nullptr)
+				{
+					cout << "WorkerThread() sendBuff is nullptr" << endl;
+					continue;
+				}
+				char* sendOffset = g_sendBufferPointer + sendBuff->Offset;
+				memcpy_s(sendOffset, RECV_BUFFER_SIZE, offset, buffer->Length);
+
+				cout << strlen(sendOffset) << " " << endl;
+
+				if (g_RIOFunctionTable.RIOSendEx(g_RIORQ, sendBuff, 1, NULL, &g_addrRIOBufs[g_addrRIOBufIndex % g_addrRIOBufTotalCount], NULL, NULL, 0, sendBuff) == false)
+				{
+					cout << "RIOSend() failed " << GetLastError() << endl;
+					continue;
+				}
+
+				LeaveCriticalSection(&g_lock);
+			}
+			else if (buffer->operationType == OP_SEND)
+			{
+				EnterCriticalSection(&g_lock);
+
+				if (g_RIOFunctionTable.RIOReceiveEx(g_RIORQ, buffer, 1, NULL, &g_addrRIOBufs[g_addrRIOBufIndex % g_addrRIOBufTotalCount], NULL, 0, 0, buffer) == false)
+				{
+					cout << "RIORecv() failed " << GetLastError() << endl;
+					continue;
+				}
+
+				++g_addrRIOBufIndex;
+
+				LeaveCriticalSection(&g_lock);
+			}
+			else
 			{
 				break;
 			}
