@@ -1,5 +1,6 @@
 // Âü°í : https://gist.github.com/ujentus/5997058#file-rioserver_sm9-cpp
 
+#include "PreCompile.h"
 #include <iostream>
 #include <WinSock2.h>
 #include <MSWSock.h>
