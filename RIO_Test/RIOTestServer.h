@@ -30,6 +30,9 @@ public:
 	void Worker();
 	
 private:
+	void RunThreads();
+
+private:
 	SRWLOCK lock;
 	std::thread accepterThread;
 	std::vector<std::thread> workerThreads;

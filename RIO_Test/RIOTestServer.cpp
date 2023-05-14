@@ -1,6 +1,7 @@
 #include "PreCompile.h"
 #include "RIOTestServer.h"
 #include "RIOTestSession.h"
+#include "ScopeLock.h"
 
 using namespace std;
 
@@ -78,11 +79,7 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 		return false;
 	}
 
-	accepterThread = std::thread([this]() { this->Accepter(); });
-	for (int i = 0; i < numOfWorkerThread; ++i)
-	{
-		workerThreads.emplace_back([this]() { this->Worker(); });
-	}
+	RunThreads();
 
 	return true;
 }
@@ -119,6 +116,15 @@ void RIOTestServer::StopServer()
 	rioFunctionTable.RIOCloseCompletionQueue(rioCQ);
 
 	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
+}
+
+void RIOTestServer::RunThreads()
+{
+	accepterThread = std::thread([this]() { this->Accepter(); });
+	for (int i = 0; i < numOfWorkerThread; ++i)
+	{
+		workerThreads.emplace_back([this]() { this->Worker(); });
+	}
 }
 
 void RIOTestServer::Accepter()
