@@ -4,7 +4,7 @@
 int main()
 {
 	RIOTestServer server;
-	server.StartServer(L"");
+	server.StartServer(L"OptionFile/ServerOption.txt");
 
 	return 0;
 }

@@ -142,9 +142,9 @@ bool RIOTestServer::InitializeRIO()
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 	DWORD bytes = 0;
 	if (WSAIoctl(listenSocket, SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER, &functionTableId, sizeof(GUID)
-		, reinterpret_cast<void**>(&rioFunctionTable), sizeof(rioFunctionTable), &bytes, NULL, NULL) == NULL)
+		, reinterpret_cast<void**>(&rioFunctionTable), sizeof(rioFunctionTable), &bytes, NULL, NULL) != 0)
 	{
-		cout << "WSAIoctl_SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER" << endl;
+		PrintError("WSAIoctl_SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER");
 		return false;
 	}
 
@@ -155,8 +155,7 @@ bool RIOTestServer::InitializeRIO()
 	notiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
 	notiCompletion.Iocp.Overlapped = &overlapped;
 
-	// 0이면 최적의 사이즈 운영체제가 결정한다고 하는데 맞나?
-	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(0, &notiCompletion);
+	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(RIO_PENDING_SEND, &notiCompletion);
 	if (rioCQ == RIO_INVALID_CQ)
 	{
 		PrintError("RIOCreateCompletionQueue");
