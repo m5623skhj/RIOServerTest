@@ -1,6 +1,15 @@
 #pragma once
+#include <MSWSock.h>
+#include <vector>
+#include <thread>
+
+#pragma comment(lib, "ws2_32.lib")
 
 #define USE_SOCKET_LINGER_OPTION 1
+
+const DWORD SEND_BUFFER_SIZE = 2048;
+const DWORD RIO_PENDING_SEND = 8192;
+constexpr DWORD TOTAL_BUFFER_SIZE = SEND_BUFFER_SIZE * RIO_PENDING_SEND;
 
 class RIOTestServer
 {
@@ -19,12 +28,23 @@ public:
 	
 private:
 	SRWLOCK lock;
+	std::vector<std::thread> workerThreads;
 #pragma endregion thread
 
-#pragma region RIO
+#pragma region rio
 private:
 	bool InitializeRIO();
-#pragma endregion RIO
+
+private:
+	GUID functionTableId = WSAID_MULTIPLE_RIO;
+
+	RIO_CQ rioCQ;
+	
+	std::shared_ptr<char> rioSendBuffer = nullptr;
+	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
+
+	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
+#pragma endregion rio
 
 #pragma region serverOption
 private:
@@ -42,5 +62,5 @@ private:
 	SOCKET listenSocket;
 
 private:
-	HANDLE IOCPHandle;
+	HANDLE iocpHandle;
 };

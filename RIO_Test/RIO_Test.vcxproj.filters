@@ -13,10 +13,48 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="RIO">
+      <UniqueIdentifier>{66796bda-689b-4aa9-9e8c-6968ef126e3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{20f9bbf6-f035-4cd3-badd-2ef61d4263e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="_main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RIOTestServer.cpp">
+      <Filter>RIO</Filter>
+    </ClCompile>
+    <ClCompile Include="RIOTestSession.cpp">
+      <Filter>RIO</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\NetServerSerializeBuffer.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\PreCompile.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\Parse.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RIOTestServer.h">
+      <Filter>RIO</Filter>
+    </ClInclude>
+    <ClInclude Include="RIOTestSession.h">
+      <Filter>RIO</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

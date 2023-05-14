@@ -1,8 +1,20 @@
 #include "PreCompile.h"
 #include "RIOTestServer.h"
-#include <thread>
 
 using namespace std;
+
+enum class RIO_COMPLETION_KEY_TYPE : char
+{
+	STOP = 0
+	, START = 1
+};
+
+enum class RIO_OPERATION_TYPE : char
+{
+	OP_ERROR = 0
+	, OP_RECV = 1
+	, OP_SEND  = 2
+};
 
 void PrintError(const string& errorFunctionName)
 {
@@ -53,8 +65,8 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 		return false;
 	}
 
-	IOCPHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, numOfWorkerThread);
-	if (IOCPHandle == NULL)
+	iocpHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, numOfWorkerThread);
+	if (iocpHandle == NULL)
 	{
 		PrintError("CreateCompletionPort");
 		return false;
@@ -63,6 +75,11 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 	if (InitializeRIO() == false)
 	{
 		return false;
+	}
+
+	for (int i = 0; i < numOfWorkerThread; ++i)
+	{
+		workerThreads.emplace_back([this]() { this->Worker(); });
 	}
 
 	return true;
@@ -95,22 +112,72 @@ bool RIOTestServer::SetSocketOption()
 
 void RIOTestServer::StopServer()
 {
+	closesocket(listenSocket);
 
+	rioFunctionTable.RIOCloseCompletionQueue(rioCQ);
+
+	//rioFunctionTable.RIODeregisterBuffer();
 }
 
 void RIOTestServer::Accepter()
 {
-
+	printf("accepter on");
+	while (true)
+	{
+		Sleep(1000);
+	}
 }
 
 void RIOTestServer::Worker()
 {
-
+	printf("worker on");
+	while (true)
+	{
+		Sleep(1000);
+	}
 }
 
 bool RIOTestServer::InitializeRIO()
 {
+	GUID functionTableId = WSAID_MULTIPLE_RIO;
+	DWORD bytes = 0;
+	if (WSAIoctl(listenSocket, SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER, &functionTableId, sizeof(GUID)
+		, reinterpret_cast<void**>(&rioFunctionTable), sizeof(rioFunctionTable), &bytes, NULL, NULL) == NULL)
+	{
+		cout << "WSAIoctl_SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER" << endl;
+		return false;
+	}
 
+	OVERLAPPED overlapped;
+	RIO_NOTIFICATION_COMPLETION notiCompletion;
+	notiCompletion.Type = RIO_IOCP_COMPLETION;
+	notiCompletion.Iocp.IocpHandle = iocpHandle;
+	notiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
+	notiCompletion.Iocp.Overlapped = &overlapped;
+
+	// 0이면 최적의 사이즈 운영체제가 결정한다고 하는데 맞나?
+	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(0, &notiCompletion);
+	if (rioCQ == RIO_INVALID_CQ)
+	{
+		PrintError("RIOCreateCompletionQueue");
+		return false;
+	}
+
+	// CQ 버퍼 등록
+	rioSendBuffer.reset(new char[TOTAL_BUFFER_SIZE]);
+	if (rioSendBuffer == nullptr)
+	{
+		cout << "rioSendBuff.reset is nullptr " << GetLastError() << endl;
+		return false;
+	}
+	ZeroMemory(rioSendBuffer.get(), TOTAL_BUFFER_SIZE);
+	
+	rioSendBufferId = rioFunctionTable.RIORegisterBuffer(rioSendBuffer.get(), TOTAL_BUFFER_SIZE);
+	if (rioSendBufferId == RIO_INVALID_BUFFERID)
+	{
+		cout << "rioSendBufferId is ROI_INVALID_BUFFERID " << GetLastError() << endl;
+		return false;
+	}
 
 	return true;
 }
