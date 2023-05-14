@@ -28,6 +28,7 @@ public:
 	
 private:
 	SRWLOCK lock;
+	std::thread accepterThread;
 	std::vector<std::thread> workerThreads;
 #pragma endregion thread
 

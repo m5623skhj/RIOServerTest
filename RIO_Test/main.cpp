@@ -6,5 +6,8 @@ int main()
 	RIOTestServer server;
 	server.StartServer(L"OptionFile/ServerOption.txt");
 
+	Sleep(10000);
+	server.StopServer();
+
 	return 0;
 }

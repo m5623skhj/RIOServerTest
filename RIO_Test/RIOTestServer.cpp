@@ -77,6 +77,7 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 		return false;
 	}
 
+	accepterThread = std::thread([this]() { this->Accepter(); });
 	for (int i = 0; i < numOfWorkerThread; ++i)
 	{
 		workerThreads.emplace_back([this]() { this->Worker(); });
