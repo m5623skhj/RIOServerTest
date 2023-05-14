@@ -2,6 +2,7 @@
 #include <MSWSock.h>
 #include <vector>
 #include <thread>
+#include <map>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -10,6 +11,8 @@
 const DWORD SEND_BUFFER_SIZE = 2048;
 const DWORD RIO_PENDING_SEND = 8192;
 constexpr DWORD TOTAL_BUFFER_SIZE = SEND_BUFFER_SIZE * RIO_PENDING_SEND;
+
+class RIOTestSession;
 
 class RIOTestServer
 {
@@ -61,7 +64,9 @@ private:
 
 private:
 	SOCKET listenSocket;
+	HANDLE iocpHandle;
 
 private:
-	HANDLE iocpHandle;
+	std::map<UINT_PTR, std::shared_ptr<RIOTestSession>> sessionMap;
+
 };

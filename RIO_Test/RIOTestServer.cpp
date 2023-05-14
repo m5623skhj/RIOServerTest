@@ -1,19 +1,20 @@
 #include "PreCompile.h"
 #include "RIOTestServer.h"
+#include "RIOTestSession.h"
 
 using namespace std;
 
-enum class RIO_COMPLETION_KEY_TYPE : char
+enum class RIO_COMPLETION_KEY_TYPE : INT8
 {
 	STOP = 0
-	, START = 1
+	, START
 };
 
-enum class RIO_OPERATION_TYPE : char
+enum class RIO_OPERATION_TYPE : INT8
 {
 	OP_ERROR = 0
-	, OP_RECV = 1
-	, OP_SEND  = 2
+	, OP_RECV
+	, OP_SEND
 };
 
 void PrintError(const string& errorFunctionName)
@@ -117,7 +118,7 @@ void RIOTestServer::StopServer()
 
 	rioFunctionTable.RIOCloseCompletionQueue(rioCQ);
 
-	//rioFunctionTable.RIODeregisterBuffer();
+	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
 }
 
 void RIOTestServer::Accepter()

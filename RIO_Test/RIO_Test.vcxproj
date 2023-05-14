@@ -135,6 +135,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\PreCompile.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
+    <ClCompile Include="Lock.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="_main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -143,6 +144,7 @@
     <ClCompile Include="RIOTestSession.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Lock.h" />
     <ClInclude Include="RIOTestServer.h" />
     <ClInclude Include="RIOTestSession.h" />
   </ItemGroup>
