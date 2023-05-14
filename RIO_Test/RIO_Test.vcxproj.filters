@@ -51,7 +51,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\Parse.cpp">
       <Filter>Include</Filter>
     </ClCompile>
-    <ClCompile Include="Lock.cpp">
+    <ClCompile Include="ScopeLock.cpp">
       <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,7 +62,7 @@
     <ClInclude Include="RIOTestSession.h">
       <Filter>RIO</Filter>
     </ClInclude>
-    <ClInclude Include="Lock.h">
+    <ClInclude Include="ScopeLock.h">
       <Filter>lib</Filter>
     </ClInclude>
   </ItemGroup>

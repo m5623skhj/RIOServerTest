@@ -16,3 +16,16 @@ private:
 
 #define SCOPE_READ_LOCK(lock) ScopeSRWLock scopeLock_##__LINE__(lock, false)
 #define SCOPE_WRITE_LOCK(lock) ScopeSRWLock scopeLock_##__LINE__(lock, true)
+
+class ScopeCriticalSection
+{
+public:
+	ScopeCriticalSection() = delete;
+	explicit ScopeCriticalSection(OUT CRITICAL_SECTION& lock);
+	~ScopeCriticalSection();
+
+private:
+	CRITICAL_SECTION& lock;
+};
+
+#define SCOPE_LOCK(lock) ScopeCriticalSection scopeLock_##__LINE__(lock)

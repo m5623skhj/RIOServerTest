@@ -26,3 +26,14 @@ ScopeSRWLock::~ScopeSRWLock()
 		ReleaseSRWLockShared(&lock);
 	}
 }
+
+ScopeCriticalSection::ScopeCriticalSection(OUT CRITICAL_SECTION& inLock)
+	: lock(inLock)
+{
+	EnterCriticalSection(&lock);
+}
+
+ScopeCriticalSection::~ScopeCriticalSection()
+{
+	LeaveCriticalSection(&lock);
+}
