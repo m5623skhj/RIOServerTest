@@ -73,6 +73,7 @@ private:
 #pragma region session
 private:
 	bool MakeNewSession(SOCKET enteredClientSocket);
+	bool ReleaseSession(std::shared_ptr<RIOTestSession> releaseSession);
 
 private:
 	std::map<UINT_PTR, std::shared_ptr<RIOTestSession>> sessionMap;

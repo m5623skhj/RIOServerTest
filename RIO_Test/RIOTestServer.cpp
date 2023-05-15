@@ -2,6 +2,7 @@
 #include "RIOTestServer.h"
 #include "RIOTestSession.h"
 #include "ScopeLock.h"
+#include "NetServerSerializeBuffer.h"
 
 #include "BuildConfig.h"
 
@@ -142,6 +143,7 @@ void RIOTestServer::Accepter()
 			else
 			{
 				PrintError("Accepter() / accept", error);
+				continue;
 			}
 		}
 
@@ -172,9 +174,44 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
 
 	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioCQ) == false)
 	{
-		//ReleaseSession();
+		ReleaseSession(newSession);
 		return false;
 	}
+
+	return true;
+}
+
+bool RIOTestServer::ReleaseSession(std::shared_ptr<RIOTestSession> releaseSession)
+{
+	if (releaseSession == nullptr)
+	{
+		return false;
+	}
+
+	if (InterlockedCompareExchange64(reinterpret_cast<LONG64*>(releaseSession->ioCount), 0, IO_COUNT_RELEASE_VALUE) != IO_COUNT_RELEASE_VALUE)
+	{
+		return false;
+	}
+
+	int sendBufferRestCount = releaseSession->sendOverlapped.bufferCount;
+	int rest = releaseSession->sendOverlapped.sendQueue.GetRestSize();
+	
+	for (int i = 0; i < sendBufferRestCount; ++i)
+	{
+		// free buffer
+	}
+
+	NetBuffer* deleteBuff;
+	while (rest > 0)
+	{
+		releaseSession->sendOverlapped.sendQueue.Dequeue(&deleteBuff);
+		// free buffer
+
+		--rest;
+	}
+
+	closesocket(releaseSession->socket);
+	InterlockedDecrement(&sessionCount);
 
 	return true;
 }
