@@ -22,6 +22,9 @@
     <Filter Include="lib">
       <UniqueIdentifier>{94eae068-f5f6-49f9-8614-dfd9ab01db2e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="etc">
+      <UniqueIdentifier>{8dc995e6-b106-4aff-bfd4-b2e59f762a50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -64,6 +67,15 @@
     </ClInclude>
     <ClInclude Include="ScopeLock.h">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumType.h">
+      <Filter>etc</Filter>
+    </ClInclude>
+    <ClInclude Include="DefineType.h">
+      <Filter>etc</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildConfig.h">
+      <Filter>etc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

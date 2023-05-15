@@ -3,24 +3,18 @@
 #include "RIOTestSession.h"
 #include "ScopeLock.h"
 
+#include "BuildConfig.h"
+
 using namespace std;
-
-enum class RIO_COMPLETION_KEY_TYPE : INT8
-{
-	STOP = 0
-	, START
-};
-
-enum class RIO_OPERATION_TYPE : INT8
-{
-	OP_ERROR = 0
-	, OP_RECV
-	, OP_SEND
-};
 
 void PrintError(const string& errorFunctionName)
 {
 	cout << errorFunctionName << "() failed " << GetLastError() << endl;
+}
+
+void PrintError(const string& errorFunctionName, DWORD errorCode)
+{
+	cout << errorFunctionName << "() failed " << errorCode << endl;
 }
 
 bool RIOTestServer::StartServer(const std::wstring& optionFileName)
@@ -121,7 +115,7 @@ void RIOTestServer::StopServer()
 void RIOTestServer::RunThreads()
 {
 	accepterThread = std::thread([this]() { this->Accepter(); });
-	for (int i = 0; i < numOfWorkerThread; ++i)
+	for (BYTE i = 0; i < numOfWorkerThread; ++i)
 	{
 		workerThreads.emplace_back([this]() { this->Worker(); });
 	}
@@ -129,11 +123,60 @@ void RIOTestServer::RunThreads()
 
 void RIOTestServer::Accepter()
 {
-	printf("accepter on");
+	SOCKET enteredClientSocket;
+	SOCKADDR_IN enteredClientAddr;
+	WCHAR enteredIP[IP_SIZE];
+	int addrSize = sizeof(enteredClientAddr);
+	DWORD error = 0;
+
 	while (true)
 	{
-		Sleep(1000);
+		enteredClientSocket = accept(listenSocket, reinterpret_cast<SOCKADDR*>(&enteredClientAddr), &addrSize);
+		if (enteredClientSocket == INVALID_SOCKET)
+		{
+			error = GetLastError();
+			if (error == WSAEINTR)
+			{
+				break;
+			}
+			else
+			{
+				PrintError("Accepter() / accept", error);
+			}
+		}
+
+		inet_ntop(AF_INET, reinterpret_cast<void*>(&enteredClientAddr), reinterpret_cast<PSTR>(enteredIP), sizeof(enteredIP));
+		// 여기에서 해당 IP에 대한 처리 등을 하면 될 듯
+
+		if (MakeNewSession(enteredClientSocket) == false)
+		{
+			continue;
+		}
+		InterlockedIncrement(&sessionCount);
 	}
+}
+
+bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
+{
+	UINT64 newSessionId = InterlockedIncrement(&nextSessionId);
+	if (newSessionId == INVALID_SESSION_ID)
+	{
+		return false;
+	}
+
+	auto newSession = make_shared<RIOTestSession>(enteredClientSocket, newSessionId);
+	if (newSession == nullptr)
+	{
+		return false;
+	}
+
+	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioCQ) == false)
+	{
+		//ReleaseSession();
+		return false;
+	}
+
+	return true;
 }
 
 void RIOTestServer::Worker()
@@ -156,14 +199,12 @@ bool RIOTestServer::InitializeRIO()
 		return false;
 	}
 
-	OVERLAPPED overlapped;
-	RIO_NOTIFICATION_COMPLETION notiCompletion;
-	notiCompletion.Type = RIO_IOCP_COMPLETION;
-	notiCompletion.Iocp.IocpHandle = iocpHandle;
-	notiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
-	notiCompletion.Iocp.Overlapped = &overlapped;
+	rioNotiCompletion.Type = RIO_IOCP_COMPLETION;
+	rioNotiCompletion.Iocp.IocpHandle = iocpHandle;
+	rioNotiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
+	rioNotiCompletion.Iocp.Overlapped = &rioCQOverlapped;
 
-	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(RIO_PENDING_SEND, &notiCompletion);
+	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
 	if (rioCQ == RIO_INVALID_CQ)
 	{
 		PrintError("RIOCreateCompletionQueue");

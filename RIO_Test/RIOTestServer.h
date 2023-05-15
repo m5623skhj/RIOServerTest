@@ -3,10 +3,9 @@
 #include <vector>
 #include <thread>
 #include <map>
+#include "DefineType.h"
 
 #pragma comment(lib, "ws2_32.lib")
-
-#define USE_SOCKET_LINGER_OPTION 1
 
 const DWORD SEND_BUFFER_SIZE = 2048;
 const DWORD RIO_PENDING_SEND = 8192;
@@ -45,12 +44,14 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ rioCQ;
+	RIO_CQ rioCQ = RIO_INVALID_CQ;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
 
+	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
+	OVERLAPPED rioCQOverlapped;
 #pragma endregion rio
 
 #pragma region serverOption
@@ -69,7 +70,16 @@ private:
 	SOCKET listenSocket;
 	HANDLE iocpHandle;
 
+#pragma region session
+private:
+	bool MakeNewSession(SOCKET enteredClientSocket);
+
 private:
 	std::map<UINT_PTR, std::shared_ptr<RIOTestSession>> sessionMap;
+	SRWLOCK sessionMapLock;
 
+	UINT64 nextSessionId = INVALID_SESSION_ID + 1;
+
+	UINT sessionCount = 0;
+#pragma endregion session
 };

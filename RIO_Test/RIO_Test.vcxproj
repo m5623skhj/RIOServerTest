@@ -144,6 +144,9 @@
     <ClCompile Include="RIOTestSession.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildConfig.h" />
+    <ClInclude Include="DefineType.h" />
+    <ClInclude Include="EnumType.h" />
     <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="RIOTestServer.h" />
     <ClInclude Include="RIOTestSession.h" />
