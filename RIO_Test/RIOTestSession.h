@@ -5,6 +5,7 @@
 #include "LockFreeQueue.h"
 #include "Queue.h"
 #include "EnumType.h"
+#include "DefineType.h"
 
 class NetBuffer;
 class RIOTestServer;
@@ -35,6 +36,10 @@ private:
 	bool InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioCQ);
 
 public:
+	virtual void OnClientEntered() {}
+	virtual void OnClientLeaved() {}
+
+public:
 	void SendPacket(NetBuffer& packet);
 	void SendPacketAndDisconnect(NetBuffer& packet);
 	void Disconnect();
@@ -42,7 +47,7 @@ public:
 
 private:
 	SOCKET socket;
-	UINT64 sessionId = 0;
+	SessionId sessionId = INVALID_SESSION_ID;
 	
 	bool sendDisconnect = false;
 	bool ioCancle = false;

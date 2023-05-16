@@ -28,7 +28,7 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 		return false;
 	}
 
-	return InterlockedDecrement(&ioCount) != 0;
+	return true;
 }
 
 void RIOTestSession::SendPacket(NetBuffer& packet)

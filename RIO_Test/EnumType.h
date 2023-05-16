@@ -18,3 +18,10 @@ enum class IO_MODE : INT8
 	IO_NONE_SENDING = 0
 	, IO_SENDING
 };
+
+enum class IO_POST_ERROR : INT8
+{
+	SUCCESS = 0
+	, IS_DELETED_SESSION
+	, FAILED_RECV_POST
+};

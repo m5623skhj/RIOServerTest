@@ -4,3 +4,5 @@
 #define IP_SIZE 16
 
 #define IO_COUNT_RELEASE_VALUE 0x100000000
+
+using SessionId = UINT64;

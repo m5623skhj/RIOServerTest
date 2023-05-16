@@ -4,6 +4,7 @@
 #include <thread>
 #include <map>
 #include "DefineType.h"
+#include "EnumType.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -32,7 +33,6 @@ private:
 	void RunThreads();
 
 private:
-	SRWLOCK lock;
 	std::thread accepterThread;
 	std::vector<std::thread> workerThreads;
 #pragma endregion thread
@@ -52,7 +52,13 @@ private:
 	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
 	OVERLAPPED rioCQOverlapped;
+
+	SRWLOCK rioLock;
 #pragma endregion rio
+
+#pragma region io
+	IO_POST_ERROR RecvPost(OUT RIOTestSession& session);
+#pragma endregion io
 
 #pragma region serverOption
 private:
@@ -73,10 +79,10 @@ private:
 #pragma region session
 private:
 	bool MakeNewSession(SOCKET enteredClientSocket);
-	bool ReleaseSession(std::shared_ptr<RIOTestSession> releaseSession);
+	bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
 private:
-	std::map<UINT_PTR, std::shared_ptr<RIOTestSession>> sessionMap;
+	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
 	SRWLOCK sessionMapLock;
 
 	UINT64 nextSessionId = INVALID_SESSION_ID + 1;
