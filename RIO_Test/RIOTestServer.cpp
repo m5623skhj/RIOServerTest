@@ -207,7 +207,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
 
 bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 {
-	if (InterlockedCompareExchange64(reinterpret_cast<LONG64*>(releaseSession.ioCount), 0, IO_COUNT_RELEASE_VALUE) != IO_COUNT_RELEASE_VALUE)
+	if (InterlockedCompareExchange(&releaseSession.ioCount, 0, IO_COUNT_RELEASE_VALUE) != IO_COUNT_RELEASE_VALUE)
 	{
 		return false;
 	}
@@ -222,14 +222,14 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 	
 	for (int i = 0; i < sendBufferRestCount; ++i)
 	{
-		// free buffer
+		NetBuffer::Free(releaseSession.sendOverlapped.storedBuffer[i]);
 	}
 
-	NetBuffer* deleteBuff;
+	NetBuffer* deleteBuffer;
 	while (rest > 0)
 	{
-		releaseSession.sendOverlapped.sendQueue.Dequeue(&deleteBuff);
-		// free buffer
+		releaseSession.sendOverlapped.sendQueue.Dequeue(&deleteBuffer);
+		NetBuffer::Free(deleteBuffer);
 
 		--rest;
 	}
@@ -316,12 +316,64 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 		if (rioFunctionTable.RIOReceiveEx(session.rioRQ, &buffer, 1
 			, NULL, NULL, NULL, NULL, NULL, &buffer) == TRUE)
 		{
-			PrintError("RIOSend", GetLastError());
+			PrintError("RIOReceiveEx", GetLastError());
 			return IO_POST_ERROR::FAILED_RECV_POST;
 		}
 	}
 
 	return IO_POST_ERROR::SUCCESS;
+}
+
+IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
+{
+	while (1)
+	{
+		if (InterlockedExchange((LONG*)(&session.sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_SENDING) 
+			!= (LONG)IO_MODE::IO_NONE_SENDING))
+		{
+			return IO_POST_ERROR::SUCCESS;
+		}
+
+		int bufferCount = session.sendOverlapped.sendQueue.GetRestSize();
+		if (bufferCount == 0)
+		{
+			InterlockedExchange((LONG*)(&session.sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_SENDING));
+			if (session.sendOverlapped.sendQueue.GetRestSize() > 0)
+			{
+				continue;
+			}
+
+			return IO_POST_ERROR::SUCCESS;
+		}
+
+		RIO_BUF buffer[ONE_SEND_WSABUF_MAX];
+		if (ONE_SEND_WSABUF_MAX < bufferCount)
+		{
+			bufferCount = ONE_SEND_WSABUF_MAX;
+		}
+
+		for (int i = 0; i < bufferCount; ++i)
+		{
+			session.sendOverlapped.sendQueue.Dequeue(&session.sendOverlapped.storedBuffer[i]);
+			int bufferUseSize = session.sendOverlapped.storedBuffer[i]->GetAllUseSize();
+			buffer[i].Length = bufferUseSize;
+			memcpy_s(&buffer[i], bufferUseSize, session.sendOverlapped.storedBuffer[i], bufferUseSize);
+		}
+
+		{
+			SCOPE_WRITE_LOCK(rioLock);
+			if (rioFunctionTable.RIOSendEx(session.rioRQ, buffer, bufferCount
+				, NULL, NULL, NULL, NULL, NULL, buffer) == TRUE)
+			{
+				PrintError("RIOSendEx", GetLastError());
+				return IO_POST_ERROR::FAILED_SEND_POST;
+			}
+		}
+
+		return IO_POST_ERROR::SUCCESS;
+
+	}
+	return IO_POST_ERROR::IS_DELETED_SESSION;
 }
 
 bool RIOTestServer::ServerOptionParsing(const std::wstring& optionFileName)

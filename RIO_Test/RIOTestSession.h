@@ -6,8 +6,9 @@
 #include "Queue.h"
 #include "EnumType.h"
 #include "DefineType.h"
+#include "NetServerSerializeBuffer.h"
 
-class NetBuffer;
+using NetBuffer = CNetServerSerializationBuf;
 class RIOTestServer;
 
 struct OverlappedForRecv : public OVERLAPPED
@@ -20,6 +21,7 @@ struct OverlappedForSend : public OVERLAPPED
 {
 	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
+	NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
 };
 
@@ -54,7 +56,7 @@ private:
 
 #pragma region IO
 private:
-	UINT ioCount = 0;
+	LONG ioCount = 0;
 
 	OverlappedForRecv recvOverlapped;
 	OverlappedForSend sendOverlapped;

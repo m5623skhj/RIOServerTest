@@ -58,6 +58,7 @@ private:
 
 #pragma region io
 	IO_POST_ERROR RecvPost(OUT RIOTestSession& session);
+	IO_POST_ERROR SendPost(OUT RIOTestSession& session);
 #pragma endregion io
 
 #pragma region serverOption

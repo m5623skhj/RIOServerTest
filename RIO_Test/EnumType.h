@@ -13,7 +13,7 @@ enum class RIO_OPERATION_TYPE : INT8
 	, OP_SEND
 };
 
-enum class IO_MODE : INT8
+enum class IO_MODE : LONG
 {
 	IO_NONE_SENDING = 0
 	, IO_SENDING
@@ -24,4 +24,5 @@ enum class IO_POST_ERROR : INT8
 	SUCCESS = 0
 	, IS_DELETED_SESSION
 	, FAILED_RECV_POST
+	, FAILED_SEND_POST
 };
