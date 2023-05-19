@@ -22,7 +22,7 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 
 	recvOverlapped.recvRingBuffer.InitPointer();
 
-	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 1, 1, 1, 1, rioCQ, rioCQ, nullptr);
+	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 1, 1, 1, 1, rioCQ, rioCQ, &sessionId);
 	if (rioRQ == RIO_INVALID_RQ)
 	{
 		return false;

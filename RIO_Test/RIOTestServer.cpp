@@ -158,6 +158,96 @@ void RIOTestServer::Accepter()
 	}
 }
 
+void RIOTestServer::Worker()
+{
+	DWORD transferred;
+	ULONG_PTR completionKey;
+	LPOVERLAPPED overlapped;
+	std::shared_ptr<RIOTestSession> session;
+
+	while (true)
+	{
+		transferred = -1;
+		completionKey = 0;
+		overlapped = nullptr;
+
+		if (GetQueuedCompletionStatus(iocpHandle, &transferred, &completionKey, &overlapped, INFINITE) == false)
+		{
+			if (overlapped == nullptr)
+			{
+				cout << "overlapped is nullptr" << endl;
+				PrintError("Worker/overlapped");
+				g_Dump.Crash();
+			}
+
+			int errorCode = GetLastError();
+			if (transferred == 0 || session->ioCancle)
+			{
+				if (InterlockedDecrement(&session->ioCount) == 0)
+				{
+					ReleaseSession(*session);
+				}
+			}
+
+			// log to GQCSFailed() with errorCode
+		}
+
+		{
+			SCOPE_READ_LOCK(sessionMapLock);
+			auto iter = sessionMap.find(completionKey);
+			if (iter == sessionMap.end())
+			{
+				cout << "iter == sessionMap.end. completionKey : " << completionKey  << endl;
+				PrintError("Worker/session is nullptr", GetLastError());
+				continue;
+			}
+
+			session = iter->second;
+		}
+
+		if (transferred == 0 || session->ioCancle == true)
+		{
+			if (InterlockedDecrement(&session->ioCount) == 0)
+			{
+				ReleaseSession(*session);
+				continue;
+			}
+		}
+
+		if (&session->recvOverlapped == overlapped)
+		{
+			// recv completed part
+		}
+		else if (&session->sendOverlapped == overlapped)
+		{
+			// send completed part
+		}
+		else if(&session->postQueueOverlapped == overlapped)
+		{
+			// send post part
+		}
+
+		// if Post failed then io count decrement and release session
+	}
+}
+
+UINT RIOTestServer::GetSessionCount() const
+{
+	return sessionCount;
+}
+
+void RIOTestServer::Disconnect(UINT64 sessionId)
+{
+	SCOPE_READ_LOCK(sessionMapLock);
+	auto session = sessionMap.find(sessionId);
+	if (session == sessionMap.end())
+	{
+		return;
+	}
+
+	shutdown(session->second->socket, SD_BOTH);
+}
+
 bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
 {
 	UINT64 newSessionId = InterlockedIncrement(&nextSessionId);
@@ -238,15 +328,6 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 	InterlockedDecrement(&sessionCount);
 
 	return true;
-}
-
-void RIOTestServer::Worker()
-{
-	printf("worker on");
-	while (true)
-	{
-		Sleep(1000);
-	}
 }
 
 bool RIOTestServer::InitializeRIO()

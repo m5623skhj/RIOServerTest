@@ -78,6 +78,11 @@ private:
 	HANDLE iocpHandle;
 
 #pragma region session
+public:
+	UINT GetSessionCount() const;
+
+	void Disconnect(UINT64 sessionId);
+
 private:
 	bool MakeNewSession(SOCKET enteredClientSocket);
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);

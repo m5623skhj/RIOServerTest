@@ -22,6 +22,7 @@ struct OverlappedForSend : public OVERLAPPED
 	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
 	NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
+	RIO_BUF rioBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
 };
 
