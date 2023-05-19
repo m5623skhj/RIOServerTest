@@ -164,12 +164,14 @@ void RIOTestServer::Worker()
 	ULONG_PTR completionKey;
 	LPOVERLAPPED overlapped;
 	std::shared_ptr<RIOTestSession> session;
+	IO_POST_ERROR result;
 
 	while (true)
 	{
 		transferred = -1;
 		completionKey = 0;
 		overlapped = nullptr;
+		result = IO_POST_ERROR::SUCCESS;
 
 		if (GetQueuedCompletionStatus(iocpHandle, &transferred, &completionKey, &overlapped, INFINITE) == false)
 		{
@@ -216,19 +218,124 @@ void RIOTestServer::Worker()
 
 		if (&session->recvOverlapped == overlapped)
 		{
-			// recv completed part
+			result = RecvCompleted(*session, transferred);
 		}
 		else if (&session->sendOverlapped == overlapped)
 		{
-			// send completed part
+			result = SendCompleted(*session);
 		}
 		else if(&session->postQueueOverlapped == overlapped)
 		{
-			// send post part
+			result = SendPost(*session);
+			InterlockedExchange((LONG*)(&session->sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_NONE_SENDING));
 		}
 
-		// if Post failed then io count decrement and release session
+		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
+		{
+			continue;
+		}
+
+		if (InterlockedDecrement(&session->ioCount) == 0)
+		{
+			ReleaseSession(*session);
+		}
 	}
+}
+
+IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transferred)
+{
+	session.recvOverlapped.recvRingBuffer.MoveWritePos(transferred);
+	int restSize = session.recvOverlapped.recvRingBuffer.GetUseSize();
+	bool packetError = false;
+	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
+
+	while (restSize > df_HEADER_SIZE)
+	{
+		NetBuffer buffer = *NetBuffer::Alloc();
+		session.recvOverlapped.recvRingBuffer.Peek((char*)(buffer.m_pSerializeBuffer), df_HEADER_SIZE);
+		buffer.m_iRead = 0;
+
+		WORD payloadLength = GetPayloadLength(buffer, restSize);
+		if (payloadLength)
+		{
+			packetError = true;
+			break;
+		}
+		session.recvOverlapped.recvRingBuffer.RemoveData(df_HEADER_SIZE);
+
+		int dequeuedSize = session.recvOverlapped.recvRingBuffer.Dequeue(&buffer.m_pSerializeBuffer[buffer.m_iWrite], payloadLength);
+		buffer.m_iWrite += dequeuedSize;
+		if (buffer.Decode() == false)
+		{
+			packetError = true;
+			NetBuffer::Free(&buffer);
+			break;
+		}
+
+		restSize -= (dequeuedSize + df_HEADER_SIZE);
+		// OnRecv(session);
+		NetBuffer::Free(&buffer);
+	}
+
+	result = RecvPost(session);
+	if (packetError == true)
+	{
+		Disconnect(session.sessionId);
+	}
+
+	return result;
+}
+
+IO_POST_ERROR RIOTestServer::SendCompleted(RIOTestSession& session)
+{
+	int bufferCount = session.sendOverlapped.bufferCount;
+	for (int i = 0; i < bufferCount; ++i)
+	{
+		NetBuffer::Free(session.sendOverlapped.storedBuffer[i]);
+	}
+
+	// session.OnSend();
+	IO_POST_ERROR result;
+	if (session.sendDisconnect == true)
+	{
+		Disconnect(session.sessionId);
+		result = IO_POST_ERROR::SUCCESS;
+	}
+	else
+	{
+		InterlockedExchange((LONG*)(&session.sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_NONE_SENDING));
+		result = SendPost(session);
+		InterlockedExchange((LONG*)(&session.sendOverlapped.ioMode), (LONG)(IO_MODE::IO_NONE_SENDING));
+	}
+
+	return result;
+}
+
+WORD RIOTestServer::GetPayloadLength(OUT NetBuffer& buffer, int restSize)
+{
+	BYTE code;
+	WORD payloadLength;
+	buffer >> code >> payloadLength;
+
+	if (code != NetBuffer::m_byHeaderCode)
+	{
+		PrintError("GetPayloadLength/code error", 0);
+		NetBuffer::Free(&buffer);
+
+		return 0;
+	}
+	if (restSize < payloadLength + df_HEADER_SIZE)
+	{
+		if (payloadLength > dfDEFAULTSIZE)
+		{
+			PrintError("GetPayloadLength/payloadLength error", 0);
+		}
+		NetBuffer::Free(&buffer);
+		
+		return 0;
+	}
+
+	return payloadLength;
 }
 
 UINT RIOTestServer::GetSessionCount() const
@@ -409,7 +516,7 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 {
 	while (1)
 	{
-		if (InterlockedExchange((LONG*)(&session.sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_SENDING) 
+		if (InterlockedExchange((LONG*)(&session.sendOverlapped.ioMode), (LONG)(IO_MODE::IO_SENDING)
 			!= (LONG)IO_MODE::IO_NONE_SENDING))
 		{
 			return IO_POST_ERROR::SUCCESS;
@@ -418,7 +525,7 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		int bufferCount = session.sendOverlapped.sendQueue.GetRestSize();
 		if (bufferCount == 0)
 		{
-			InterlockedExchange((LONG*)(&session.sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_SENDING));
+			InterlockedExchange((LONG*)(&session.sendOverlapped.ioMode), (LONG)(IO_MODE::IO_SENDING));
 			if (session.sendOverlapped.sendQueue.GetRestSize() > 0)
 			{
 				continue;

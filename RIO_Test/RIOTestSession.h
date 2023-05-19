@@ -8,7 +8,6 @@
 #include "DefineType.h"
 #include "NetServerSerializeBuffer.h"
 
-using NetBuffer = CNetServerSerializationBuf;
 class RIOTestServer;
 
 struct OverlappedForRecv : public OVERLAPPED
@@ -19,6 +18,7 @@ struct OverlappedForRecv : public OVERLAPPED
 
 struct OverlappedForSend : public OVERLAPPED
 {
+	IO_MODE ioMode = IO_MODE::IO_NONE_SENDING;
 	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
 	NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
@@ -58,6 +58,7 @@ private:
 #pragma region IO
 private:
 	LONG ioCount = 0;
+	UINT nowPostQueuing = 0;
 
 	OverlappedForRecv recvOverlapped;
 	OverlappedForSend sendOverlapped;

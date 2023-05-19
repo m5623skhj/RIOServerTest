@@ -5,6 +5,7 @@
 #include <map>
 #include "DefineType.h"
 #include "EnumType.h"
+#include "NetServerSerializeBuffer.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -31,6 +32,12 @@ public:
 	
 private:
 	void RunThreads();
+
+private:
+	IO_POST_ERROR RecvCompleted(RIOTestSession& session, DWORD transferred);
+	IO_POST_ERROR SendCompleted(RIOTestSession& session);
+
+	WORD GetPayloadLength(OUT NetBuffer& buffer, int restSize);
 
 private:
 	std::thread accepterThread;
