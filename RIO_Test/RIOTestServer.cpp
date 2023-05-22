@@ -152,6 +152,7 @@ void RIOTestServer::Accepter()
 
 		if (MakeNewSession(enteredClientSocket) == false)
 		{
+			closesocket(enteredClientSocket);
 			continue;
 		}
 		InterlockedIncrement(&sessionCount);
