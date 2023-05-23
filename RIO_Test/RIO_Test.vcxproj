@@ -135,6 +135,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\PreCompile.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
+    <ClCompile Include="DeadlockChecker.cpp" />
     <ClCompile Include="ScopeLock.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="_main.cpp">
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuildConfig.h" />
+    <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />
     <ClInclude Include="EnumType.h" />
     <ClInclude Include="ScopeLock.h" />

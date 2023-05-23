@@ -16,13 +16,16 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 {
 	InterlockedIncrement(&ioCount);
 
+	u_long arg = 1;
+	ioctlsocket(socket, FIONBIO, &arg);
+
 	ZeroMemory(static_cast<OVERLAPPED*>(&recvOverlapped), sizeof(OVERLAPPED));
 	ZeroMemory(static_cast<OVERLAPPED*>(&sendOverlapped), sizeof(OVERLAPPED));
 	ZeroMemory(&postQueueOverlapped, sizeof(postQueueOverlapped));
 
 	recvOverlapped.recvRingBuffer.InitPointer();
 
-	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 1, 1, 1, 1, rioCQ, rioCQ, &sessionId);
+	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 32, 1, 32, 1, rioCQ, rioCQ, &sessionId);
 	if (rioRQ == RIO_INVALID_RQ)
 	{
 		return false;

@@ -33,7 +33,8 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 		return false;
 	}
 
-	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+	listenSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_REGISTERED_IO);
+	//listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenSocket == INVALID_SOCKET)
 	{
 		PrintError("socket");
@@ -147,7 +148,6 @@ void RIOTestServer::Accepter()
 			}
 		}
 
-		inet_ntop(AF_INET, reinterpret_cast<void*>(&enteredClientAddr), reinterpret_cast<PSTR>(enteredIP), sizeof(enteredIP));
 		// 여기에서 해당 IP에 대한 처리 등을 하면 될 듯
 
 		if (MakeNewSession(enteredClientSocket) == false)
@@ -443,7 +443,7 @@ bool RIOTestServer::InitializeRIO()
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 	DWORD bytes = 0;
 	if (WSAIoctl(listenSocket, SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER, &functionTableId, sizeof(GUID)
-		, reinterpret_cast<void**>(&rioFunctionTable), sizeof(rioFunctionTable), &bytes, NULL, NULL) != 0)
+		, reinterpret_cast<void**>(&rioFunctionTable), sizeof(rioFunctionTable), &bytes, NULL, NULL))
 	{
 		PrintError("WSAIoctl_SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER");
 		return false;
