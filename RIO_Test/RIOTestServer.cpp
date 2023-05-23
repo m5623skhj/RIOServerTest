@@ -493,6 +493,7 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 		return IO_POST_ERROR::FAILED_RECV_POST;
 	}
 
+	InterlockedIncrement(&session.ioCount);
 	int brokenSize = session.recvOverlapped.recvRingBuffer.GetNotBrokenGetSize();
 	int restSize = session.recvOverlapped.recvRingBuffer.GetFreeSize() - brokenSize;
 
