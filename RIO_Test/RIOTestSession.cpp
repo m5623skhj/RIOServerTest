@@ -5,6 +5,12 @@
 #include "DefineType.h"
 #include "EnumType.h"
 
+void IOContext::InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType)
+{
+	ownerSession = inOwnerSession;
+	ioType = inIOType;
+}
+
 RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
@@ -24,6 +30,12 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 	ZeroMemory(&postQueueOverlapped, sizeof(postQueueOverlapped));
 
 	recvOverlapped.recvRingBuffer.InitPointer();
+
+	bufferId = rioFunctionTable.RIORegisterBuffer(recvOverlapped.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	if (bufferId == RIO_INVALID_BUFFERID)
+	{
+		return false;
+	}
 
 	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 32, 1, 32, 1, rioCQ, rioCQ, &sessionId);
 	if (rioRQ == RIO_INVALID_RQ)

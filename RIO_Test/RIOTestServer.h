@@ -6,6 +6,7 @@
 #include "DefineType.h"
 #include "EnumType.h"
 #include "NetServerSerializeBuffer.h"
+#include "RIOTestSession.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -18,7 +19,7 @@ class RIOTestSession;
 class RIOTestServer
 {
 public:
-	RIOTestServer() = default;
+	RIOTestServer();
 	~RIOTestServer() = default;
 
 public:
@@ -28,7 +29,7 @@ public:
 #pragma region thread
 public:
 	void Accepter();
-	void Worker();
+	void Worker(BYTE inThreadId);
 	
 private:
 	void RunThreads();
@@ -51,7 +52,7 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ rioCQ = RIO_INVALID_CQ;
+	RIO_CQ* rioCQ = nullptr;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
@@ -64,8 +65,12 @@ private:
 #pragma endregion rio
 
 #pragma region io
+private:
 	IO_POST_ERROR RecvPost(OUT RIOTestSession& session);
 	IO_POST_ERROR SendPost(OUT RIOTestSession& session);
+
+private:
+	CTLSMemoryPool<IOContext> contextPool;
 #pragma endregion io
 
 #pragma region serverOption
@@ -91,7 +96,7 @@ public:
 	void Disconnect(UINT64 sessionId);
 
 private:
-	bool MakeNewSession(SOCKET enteredClientSocket);
+	bool MakeNewSession(SOCKET enteredClientSocket, BYTE threadId);
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
 private:

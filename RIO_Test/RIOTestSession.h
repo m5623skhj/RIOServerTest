@@ -9,6 +9,17 @@
 #include "NetServerSerializeBuffer.h"
 
 class RIOTestServer;
+class RIOTestSession;
+
+struct IOContext : RIO_BUF
+{
+	IOContext() = default;
+
+	void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
+
+	RIOTestSession* ownerSession = nullptr;
+	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
+};
 
 struct OverlappedForRecv : public OVERLAPPED
 {
@@ -65,5 +76,7 @@ private:
 	OVERLAPPED postQueueOverlapped;
 
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
+
+	RIO_BUFFERID bufferId;
 #pragma endregion IO
 };
