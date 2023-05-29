@@ -129,12 +129,18 @@ void RIOTestServer::RunThreads()
 
 ULONG RIOTestServer::RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults)
 {
-	ULONG numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ, rioResults, MAX_RIO_RESULT);
-	if (numOfResults == 0)
+	ULONG numOfResults = 0;
 	{
-		return 0;
+		SCOPE_WRITE_LOCK(rioCQLock);
+
+		numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ, rioResults, MAX_RIO_RESULT);
+		if (numOfResults == 0)
+		{
+			return 0;
+		}
 	}
-	else if (numOfResults == RIO_CORRUPT_CQ)
+
+	if (numOfResults == RIO_CORRUPT_CQ)
 	{
 		g_Dump.Crash();
 	}
@@ -171,7 +177,8 @@ IOContext* RIOTestServer::GetIOCompletedContext(RIORESULT& rioResult)
 void RIOTestServer::RecvIOCompleted(RIORESULT* rioResults)
 {
 	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
-	ULONG numOfResults = RIODequeueCompletion(rioRecvCQ, rioResults);
+	ULONG numOfResults =  RIODequeueCompletion(rioRecvCQ, rioResults);
+
 	for (ULONG i = 0; i < numOfResults; ++i)
 	{
 		auto context = GetIOCompletedContext(rioResults[i]);
@@ -206,7 +213,8 @@ void RIOTestServer::RecvIOCompleted(RIORESULT* rioResults)
 void RIOTestServer::SendIOCompleted(RIORESULT* rioResults)
 {
 	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
-	ULONG numOfResults = RIODequeueCompletion(rioSendCQ, rioResults);
+	ULONG numOfResults = RIODequeueCompletion(rioRecvCQ, rioResults);
+
 	for (ULONG i = 0; i < numOfResults; ++i)
 	{
 		auto context = GetIOCompletedContext(rioResults[i]);
@@ -451,16 +459,19 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 		return false;
 	}
 
-	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioRecvCQ, rioSendCQ) == false)
 	{
-		PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
-		return false;
+		SCOPE_WRITE_LOCK(rioCQLock);
+		if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioRecvCQ, rioSendCQ) == false)
+		{
+			PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
+			return false;
+		}
 	}
 
 	do
 	{
 		{
-			SCOPE_WRITE_LOCK(rioLock);
+			SCOPE_WRITE_LOCK(sessionMapLock);
 			if (sessionMap.emplace(newSessionId, newSession).second == false)
 			{
 				PrintError("RIOTestServer::MakeNewSession.emplace", GetLastError());
@@ -585,8 +596,6 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 	context->Length = restSize;
 	context->Offset = 0;
 	{
-		SCOPE_WRITE_LOCK(rioLock);
-
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
 		{
 			PrintError("RIOReceive", GetLastError());
@@ -634,7 +643,6 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		}
 
 		{
-			SCOPE_WRITE_LOCK(rioLock);
 			if (rioFunctionTable.RIOSendEx(session.rioRQ, buffer, bufferCount
 				, NULL, NULL, NULL, NULL, NULL, buffer) == TRUE)
 			{

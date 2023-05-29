@@ -58,6 +58,7 @@ private:
 
 	RIO_CQ rioRecvCQ;
 	RIO_CQ rioSendCQ;
+	SRWLOCK rioCQLock;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
@@ -65,8 +66,6 @@ private:
 	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
 	OVERLAPPED rioCQOverlapped;
-
-	SRWLOCK rioLock;
 #pragma endregion rio
 
 #pragma region io
