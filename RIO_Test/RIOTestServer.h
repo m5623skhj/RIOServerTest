@@ -52,7 +52,7 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ* rioCQ = nullptr;
+	RIO_CQ rioCQ;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;

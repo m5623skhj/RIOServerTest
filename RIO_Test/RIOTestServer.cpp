@@ -113,11 +113,7 @@ void RIOTestServer::StopServer()
 {
 	closesocket(listenSocket);
 
-	for (BYTE i = 0; i < numOfWorkerThread; ++i)
-	{
-		rioFunctionTable.RIOCloseCompletionQueue(rioCQ[i]);
-	}
-
+	rioFunctionTable.RIOCloseCompletionQueue(rioCQ);
 	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
 }
 
@@ -177,12 +173,6 @@ void RIOTestServer::Worker(BYTE inThreadId)
 
 	RIORESULT rioResults[MAX_RIO_RESULT];
 
-	rioCQ[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
-	if (rioCQ[inThreadId] == RIO_INVALID_CQ)
-	{
-		g_Dump.Crash();
-	}
-
 	while (true)
 	{
 		transferred = -1;
@@ -212,7 +202,7 @@ void RIOTestServer::Worker(BYTE inThreadId)
 			// log to GQCSFailed() with errorCode
 		}
 
-		ULONG numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ[inThreadId], rioResults, MAX_RIO_RESULT);
+		ULONG numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ, rioResults, MAX_RIO_RESULT);
 		if (numOfResults == 0)
 		{
 			continue;
@@ -447,7 +437,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 		return false;
 	}
 
-	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioCQ[threadId]) == false)
+	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioCQ) == false)
 	{
 		PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
 		return false;
@@ -531,7 +521,17 @@ bool RIOTestServer::InitializeRIO()
 	rioNotiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
 	rioNotiCompletion.Iocp.Overlapped = &rioCQOverlapped;
 
-	rioCQ = new RIO_CQ[numOfWorkerThread];
+	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
+	if (rioCQ == RIO_INVALID_CQ)
+	{
+		g_Dump.Crash();
+	}
+
+	if (rioFunctionTable.RIONotify(rioCQ) != ERROR_SUCCESS)
+	{
+		cout << "RIONotify() failed " << GetLastError() << endl;
+		g_Dump.Crash();
+	}
 
 	/*
 	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
