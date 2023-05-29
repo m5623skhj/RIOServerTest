@@ -47,7 +47,7 @@ public:
 	virtual ~RIOTestSession() = default;
 
 private:
-	bool InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioCQ);
+	bool InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ);
 
 public:
 	virtual void OnClientEntered() {}
@@ -57,7 +57,9 @@ public:
 	void SendPacket(NetBuffer& packet);
 	void SendPacketAndDisconnect(NetBuffer& packet);
 	void Disconnect();
-	void SendPacketAndDisConnect(NetBuffer& pSendPacket);
+	void SendPacketAndDisConnect(NetBuffer& packet);
+
+	void OnRecvPacket(NetBuffer& packet);
 
 private:
 	SOCKET socket;

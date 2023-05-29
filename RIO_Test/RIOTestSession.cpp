@@ -18,7 +18,7 @@ RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 
 }
 
-bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioCQ)
+bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
 {
 	InterlockedIncrement(&ioCount);
 
@@ -37,7 +37,7 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 		return false;
 	}
 
-	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 32, 1, 32, 1, rioCQ, rioCQ, &sessionId);
+	rioRQ = rioFunctionTable.RIOCreateRequestQueue(socket, 32, 1, 32, 1, rioRecvCQ, rioSendCQ, &sessionId);
 	if (rioRQ == RIO_INVALID_RQ)
 	{
 		return false;
@@ -48,12 +48,12 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 
 void RIOTestSession::SendPacket(NetBuffer& packet)
 {
-
+	UNREFERENCED_PARAMETER(packet);
 }
 
 void RIOTestSession::SendPacketAndDisconnect(NetBuffer& packet)
 {
-
+	UNREFERENCED_PARAMETER(packet);
 }
 
 void RIOTestSession::Disconnect()
@@ -61,7 +61,12 @@ void RIOTestSession::Disconnect()
 
 }
 
-void RIOTestSession::SendPacketAndDisConnect(NetBuffer& pSendPacket)
+void RIOTestSession::SendPacketAndDisConnect(NetBuffer& packet)
 {
+	UNREFERENCED_PARAMETER(packet);
+}
 
+void RIOTestSession::OnRecvPacket(NetBuffer& packet)
+{
+	UNREFERENCED_PARAMETER(packet);
 }

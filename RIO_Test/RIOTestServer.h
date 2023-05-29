@@ -34,6 +34,10 @@ public:
 private:
 	void RunThreads();
 
+	ULONG RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults);
+	IOContext* GetIOCompletedContext(RIORESULT& rioResult);
+	void RecvIOCompleted(RIORESULT* rioResults);
+	void SendIOCompleted(RIORESULT* rioResults);
 private:
 	IO_POST_ERROR RecvCompleted(RIOTestSession& session, DWORD transferred);
 	IO_POST_ERROR SendCompleted(RIOTestSession& session);
@@ -52,7 +56,8 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ rioCQ;
+	RIO_CQ rioRecvCQ;
+	RIO_CQ rioSendCQ;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;

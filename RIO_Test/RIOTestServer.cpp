@@ -113,7 +113,8 @@ void RIOTestServer::StopServer()
 {
 	closesocket(listenSocket);
 
-	rioFunctionTable.RIOCloseCompletionQueue(rioCQ);
+	rioFunctionTable.RIOCloseCompletionQueue(rioSendCQ);
+	rioFunctionTable.RIOCloseCompletionQueue(rioRecvCQ);
 	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
 }
 
@@ -123,6 +124,122 @@ void RIOTestServer::RunThreads()
 	for (BYTE i = 0; i < numOfWorkerThread; ++i)
 	{
 		workerThreads.emplace_back([this, i]() { this->Worker(i); });
+	}
+}
+
+ULONG RIOTestServer::RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults)
+{
+	ULONG numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ, rioResults, MAX_RIO_RESULT);
+	if (numOfResults == 0)
+	{
+		return 0;
+	}
+	else if (numOfResults == RIO_CORRUPT_CQ)
+	{
+		g_Dump.Crash();
+	}
+
+	return numOfResults;
+}
+
+IOContext* RIOTestServer::GetIOCompletedContext(RIORESULT& rioResult)
+{
+	IOContext* context = reinterpret_cast<IOContext*>(rioResult.RequestContext);
+	if (context == nullptr)
+	{
+		return nullptr;
+	}
+
+	RIOTestSession* session = context->ownerSession;
+	if (session == nullptr)
+	{
+		return nullptr;
+	}
+
+	if (rioResult.BytesTransferred == 0 || session->ioCancle == true)
+	{
+		if (InterlockedDecrement(&session->ioCount) == 0)
+		{
+			ReleaseSession(*session);
+			return nullptr;
+		}
+	}
+
+	return context;
+}
+
+void RIOTestServer::RecvIOCompleted(RIORESULT* rioResults)
+{
+	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
+	ULONG numOfResults = RIODequeueCompletion(rioRecvCQ, rioResults);
+	for (ULONG i = 0; i < numOfResults; ++i)
+	{
+		auto context = GetIOCompletedContext(rioResults[i]);
+		if (context == nullptr)
+		{
+			continue;
+		}
+
+		RIOTestSession* session = context->ownerSession;
+		if (context->ioType == RIO_OPERATION_TYPE::OP_RECV)
+		{
+			result = RecvCompleted(*session, rioResults[i].BytesTransferred);
+		}
+		else
+		{
+			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
+			return;
+		}
+
+		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
+		{
+			continue;
+		}
+
+		if (InterlockedDecrement(&session->ioCount) == 0)
+		{
+			ReleaseSession(*session);
+		}
+	}
+}
+
+void RIOTestServer::SendIOCompleted(RIORESULT* rioResults)
+{
+	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
+	ULONG numOfResults = RIODequeueCompletion(rioSendCQ, rioResults);
+	for (ULONG i = 0; i < numOfResults; ++i)
+	{
+		auto context = GetIOCompletedContext(rioResults[i]);
+		if (context == nullptr)
+		{
+			continue;
+		}
+
+		RIOTestSession* session = context->ownerSession;
+		if (context->ioType == RIO_OPERATION_TYPE::OP_SEND)
+		{
+			result = SendCompleted(*session);
+		}
+		//else if (context->ioType == RIO_OPERATION_TYPE::OP_SEND_REQUEST)
+		//{
+		//	result = SendPost(*session);
+		//	InterlockedExchange((LONG*)(&session->sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_NONE_SENDING));
+		//}
+		else
+		{
+			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
+			return;
+		}
+
+		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
+		{
+			continue;
+		}
+
+		if (InterlockedDecrement(&session->ioCount) == 0)
+		{
+			ReleaseSession(*session);
+		}
 	}
 }
 
@@ -202,111 +319,8 @@ void RIOTestServer::Worker(BYTE inThreadId)
 			// log to GQCSFailed() with errorCode
 		}
 
-		ULONG numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQ, rioResults, MAX_RIO_RESULT);
-		if (numOfResults == 0)
-		{
-			continue;
-		}
-		else if (numOfResults == RIO_CORRUPT_CQ)
-		{
-			g_Dump.Crash();
-		}
-
-		for (ULONG i = 0; i < numOfResults; ++i)
-		{
-			IOContext* context = reinterpret_cast<IOContext*>(rioResults[i].RequestContext);
-			if (context == nullptr)
-			{
-				g_Dump.Crash();
-			}
-
-			RIOTestSession* session = context->ownerSession;
-			if (session == nullptr)
-			{
-				g_Dump.Crash();
-			}
-
-			if (rioResults[i].BytesTransferred == 0 || session->ioCancle == true)
-			{
-				if (InterlockedDecrement(&session->ioCount) == 0)
-				{
-					ReleaseSession(*session);
-					continue;
-				}
-			}
-
-			if (context->ioType == RIO_OPERATION_TYPE::OP_RECV)
-			{
-				result = RecvCompleted(*session, transferred);
-			}
-			else if (context->ioType == RIO_OPERATION_TYPE::OP_SEND)
-			{
-				result = SendCompleted(*session);
-			}
-			else if (context->ioType == RIO_OPERATION_TYPE::OP_SEND_REQUEST)
-			{
-				result = SendPost(*session);
-				InterlockedExchange((LONG*)(&session->sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_NONE_SENDING));
-			}
-
-			if (result == IO_POST_ERROR::IS_DELETED_SESSION)
-			{
-				continue;
-			}
-
-			if (InterlockedDecrement(&session->ioCount) == 0)
-			{
-				ReleaseSession(*session);
-			}
-		}
-
-		/*
-		{
-			SCOPE_READ_LOCK(sessionMapLock);
-			auto iter = sessionMap.find(completionKey);
-			if (iter == sessionMap.end())
-			{
-				cout << "iter == sessionMap.end. completionKey : " << completionKey  << endl;
-				PrintError("Worker/session is nullptr", GetLastError());
-				continue;
-			}
-
-			session = iter->second;
-		}
-
-		if (transferred == 0 || session->ioCancle == true)
-		{
-			if (InterlockedDecrement(&session->ioCount) == 0)
-			{
-				ReleaseSession(*session);
-				continue;
-			}
-		}
-
-		if (&session->recvOverlapped == overlapped)
-		{
-			result = RecvCompleted(*session, transferred);
-		}
-		else if (&session->sendOverlapped == overlapped)
-		{
-			result = SendCompleted(*session);
-		}
-		else if(&session->postQueueOverlapped == overlapped)
-		{
-			result = SendPost(*session);
-			InterlockedExchange((LONG*)(&session->sendOverlapped.nowPostQueuing), (LONG)(IO_MODE::IO_NONE_SENDING));
-		}
-
-		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
-		{
-			continue;
-		}
-
-		if (InterlockedDecrement(&session->ioCount) == 0)
-		{
-			ReleaseSession(*session);
-		}
-		*/
+		RecvIOCompleted(rioResults);
+		SendIOCompleted(rioResults);
 	}
 }
 
@@ -324,7 +338,7 @@ IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transf
 		buffer.m_iRead = 0;
 
 		WORD payloadLength = GetPayloadLength(buffer, restSize);
-		if (payloadLength)
+		if (payloadLength > dfDEFAULTSIZE)
 		{
 			packetError = true;
 			break;
@@ -341,7 +355,7 @@ IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transf
 		}
 
 		restSize -= (dequeuedSize + df_HEADER_SIZE);
-		// OnRecv(session);
+		session.OnRecvPacket(buffer);
 		NetBuffer::Free(&buffer);
 	}
 
@@ -437,7 +451,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 		return false;
 	}
 
-	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioCQ) == false)
+	if (newSession->InitSession(iocpHandle, rioFunctionTable, rioNotiCompletion, rioRecvCQ, rioSendCQ) == false)
 	{
 		PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
 		return false;
@@ -521,42 +535,29 @@ bool RIOTestServer::InitializeRIO()
 	rioNotiCompletion.Iocp.CompletionKey = reinterpret_cast<void*>(RIO_COMPLETION_KEY_TYPE::START);
 	rioNotiCompletion.Iocp.Overlapped = &rioCQOverlapped;
 
-	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
-	if (rioCQ == RIO_INVALID_CQ)
+	rioRecvCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
+	if (rioRecvCQ == RIO_INVALID_CQ)
 	{
 		g_Dump.Crash();
 	}
 
-	if (rioFunctionTable.RIONotify(rioCQ) != ERROR_SUCCESS)
+	if (rioFunctionTable.RIONotify(rioRecvCQ) != ERROR_SUCCESS)
 	{
-		cout << "RIONotify() failed " << GetLastError() << endl;
+		cout << "RIONotify(), RecvCQ failed " << GetLastError() << endl;
 		g_Dump.Crash();
 	}
 
-	/*
-	rioCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * DEFAULT_RINGBUFFER_MAX, &rioNotiCompletion);
-	if (rioCQ == RIO_INVALID_CQ)
+	rioSendCQ = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount * MAX_CLIENT_SEND_SIZE, &rioNotiCompletion);
+	if (rioSendCQ == RIO_INVALID_CQ)
 	{
-		PrintError("RIOCreateCompletionQueue");
-		return false;
+		g_Dump.Crash();
 	}
 
-	// CQ 버퍼 등록
-	rioSendBuffer.reset(new char[TOTAL_BUFFER_SIZE]);
-	if (rioSendBuffer == nullptr)
+	if (rioFunctionTable.RIONotify(rioSendCQ) != ERROR_SUCCESS)
 	{
-		cout << "rioSendBuff.reset is nullptr " << GetLastError() << endl;
-		return false;
+		cout << "RIONotify(), SendCQ failed " << GetLastError() << endl;
+		g_Dump.Crash();
 	}
-	ZeroMemory(rioSendBuffer.get(), TOTAL_BUFFER_SIZE);
-	
-	rioSendBufferId = rioFunctionTable.RIORegisterBuffer(rioSendBuffer.get(), TOTAL_BUFFER_SIZE);
-	if (rioSendBufferId == RIO_INVALID_BUFFERID)
-	{
-		cout << "rioSendBufferId is ROI_INVALID_BUFFERID " << GetLastError() << endl;
-		return false;
-	}
-	*/
 
 	return true;
 }
@@ -666,6 +667,14 @@ bool RIOTestServer::ServerOptionParsing(const std::wstring& optionFileName)
 		return false;
 	}
 	if (g_Paser.GetValue_Int(buffer, L"RIO_SERVER", L"MAX_CLIENT_COUNT", (int*)&maxClientCount) == false)
+	{
+		return false;
+	}
+	if (g_Paser.GetValue_Byte(buffer, L"SERIALIZEBUF", L"PACKET_CODE", &NetBuffer::m_byHeaderCode) == false)
+	{
+		return false;
+	}
+	if (g_Paser.GetValue_Byte(buffer, L"SERIALIZEBUF", L"PACKET_KEY", &NetBuffer::m_byXORCode) == false)
 	{
 		return false;
 	}

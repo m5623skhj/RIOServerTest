@@ -7,6 +7,6 @@
 #define ONE_SEND_WSABUF_MAX	50
 #define MAX_RIO_RESULT 256
 
-#define CQ_SIZE 163840
+#define MAX_CLIENT_SEND_SIZE 4096
 
 using SessionId = UINT64;
