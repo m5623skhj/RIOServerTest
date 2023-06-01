@@ -24,6 +24,9 @@
     <Filter Include="DeadlockChecker">
       <UniqueIdentifier>{9e76a435-76ee-4f65-9dba-3e757be9a4a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{4b2ea87c-ea0c-4375-a12f-fff316a4773d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -59,6 +62,9 @@
     <ClCompile Include="DeadlockChecker.cpp">
       <Filter>DeadlockChecker</Filter>
     </ClCompile>
+    <ClCompile Include="PacketHandler.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -81,6 +87,9 @@
     </ClInclude>
     <ClInclude Include="DeadlockChecker.h">
       <Filter>DeadlockChecker</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.h">
+      <Filter>Protocol</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

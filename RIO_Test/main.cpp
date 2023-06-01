@@ -8,7 +8,7 @@ int main()
 	RIOTestServer server;
 	server.StartServer(L"OptionFile/ServerOption.txt");
 
-	REGISTER_PACKET_LIST();
+	//REGISTER_PACKET_LIST();
 
 	auto& deadlockChecker = DeadlockChecker::GetInstance();
 

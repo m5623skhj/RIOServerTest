@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
+    <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="ScopeLock.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="_main.cpp">
@@ -149,6 +150,7 @@
     <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />
     <ClInclude Include="EnumType.h" />
+    <ClInclude Include="Protocol.h" />
     <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="RIOTestServer.h" />
     <ClInclude Include="RIOTestSession.h" />

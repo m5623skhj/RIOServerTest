@@ -40,6 +40,7 @@ void PacketManager::RegisterPacketHandler(PacketId packetId, PacketHandler& pack
 	
 }
 
+template<>
 bool RIOTestSession::PacketHanedler(RIOTestSession& session, TestStringPacket& packet)
 {
 	UNREFERENCED_PARAMETER(session);
@@ -48,6 +49,7 @@ bool RIOTestSession::PacketHanedler(RIOTestSession& session, TestStringPacket& p
 	return true;
 }
 
+template<>
 bool RIOTestSession::PacketHanedler(RIOTestSession& session, EchoStringPacket& packet)
 {
 	UNREFERENCED_PARAMETER(session);
