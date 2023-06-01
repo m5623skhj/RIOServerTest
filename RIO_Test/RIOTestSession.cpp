@@ -66,7 +66,24 @@ void RIOTestSession::SendPacketAndDisConnect(NetBuffer& packet)
 	UNREFERENCED_PARAMETER(packet);
 }
 
-void RIOTestSession::OnRecvPacket(NetBuffer& packet)
+void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 {
-	UNREFERENCED_PARAMETER(packet);
+	// packet의 페이로드를 IPacket에 대입?
+	PacketId packetId;
+	recvPacket >> packetId;
+
+	auto packetHandler = PacketManager::GetInst().GetPacketHandler(packetId);
+	if (packetHandler != nullptr)
+	{
+		return;
+	}
+	
+	auto packet = PacketManager::GetInst().MakePacket(packetId);
+	if (packet == nullptr)
+	{
+		return;
+	}
+	memcpy(packet.get(), recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
+
+	//packetHandler(*this, *(packet.get()));
 }

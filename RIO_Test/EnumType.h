@@ -27,3 +27,10 @@ enum class IO_POST_ERROR : INT8
 	, FAILED_RECV_POST
 	, FAILED_SEND_POST
 };
+
+enum class PACKET_ID : unsigned int
+{
+	INVALID_PACKET = 0
+	, TEST_STRING_PACKET
+	, ECHO_STRING_PACEKT
+};

@@ -7,9 +7,13 @@
 #include "EnumType.h"
 #include "DefineType.h"
 #include "NetServerSerializeBuffer.h"
+#include <map>
+#include <functional>
+#include "Protocol.h"
 
 class RIOTestServer;
 class RIOTestSession;
+using PacketHandler = std::function<bool(RIOTestSession& session, IPacket& packet)>;
 
 struct IOContext : RIO_BUF
 {
@@ -81,4 +85,32 @@ private:
 
 	RIO_BUFFERID bufferId;
 #pragma endregion IO
+
+#pragma region PacketHandler
+public:
+	DECLARE_PACKET_HANDLER(TestStringPacket);
+	//bool PacketHanedler(RIOTestSession& session, TestStringPacket& packet);
+	bool PacketHanedler(RIOTestSession& session, EchoStringPacket& packet);
+#pragma endregion PacketHandler
+};
+
+class PacketManager
+{
+private:
+	PacketManager() = default;
+	~PacketManager() = default;
+
+	PacketManager(const PacketManager&) = delete;
+	PacketManager& operator=(const PacketManager&) = delete;
+
+public:
+	static PacketManager& GetInst();
+	std::shared_ptr<IPacket> MakePacket(PacketId packetId);
+	PacketHandler GetPacketHandler(PacketId packetId);
+	
+	void RegisterPacket(PacketId packetId, std::shared_ptr<IPacket> packet);
+	void RegisterPacketHandler(PacketId packetId, PacketHandler& packetHandler);
+
+	std::map<PacketId, std::shared_ptr<IPacket>> packetMap;
+	std::map<PacketId, PacketHandler> packetHandlerMap;
 };

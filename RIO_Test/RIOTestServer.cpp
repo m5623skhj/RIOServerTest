@@ -50,7 +50,7 @@ bool RIOTestServer::StartServer(const std::wstring& optionFileName)
 	addr.sin_family = AF_INET;
 	addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(port);
-	if (bind(listenSocket, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	if (::bind(listenSocket, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR)
 	{
 		PrintError("bind");
 		return false;

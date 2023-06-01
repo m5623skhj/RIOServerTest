@@ -1,11 +1,14 @@
 #include "PreCompile.h"
 #include "RIOTestServer.h"
 #include "DeadlockChecker.h"
+#include "Protocol.h"
 
 int main()
 {
 	RIOTestServer server;
 	server.StartServer(L"OptionFile/ServerOption.txt");
+
+	REGISTER_PACKET_LIST();
 
 	auto& deadlockChecker = DeadlockChecker::GetInstance();
 
