@@ -88,7 +88,8 @@ private:
 
 #pragma region PacketHandler
 public:
-	DECLARE_PACKET_HANDLER();
+	template<typename Packet>
+	bool PacketHanedler(RIOTestSession& session, Packet& packet);
 	//bool PacketHanedler(RIOTestSession& session, TestStringPacket& packet);
 	//bool PacketHanedler(RIOTestSession& session, EchoStringPacket& packet);
 #pragma endregion PacketHandler

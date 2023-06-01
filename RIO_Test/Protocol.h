@@ -56,7 +56,3 @@ public:
 	REGISTER_PACKET(PACKET_LIST);\
 }
 /*REGISTER_PACKET_HANDLER(PACKET_LIST);\*/
-
-#define DECLARE_PACKET_HANDLER()\
-	template<typename Packet>\
-	bool PacketHanedler(RIOTestSession& session, Packet& packet)
