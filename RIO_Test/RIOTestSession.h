@@ -110,7 +110,7 @@ public:
 	template <typename PacketType>
 	void RegisterPacket()
 	{
-		static_assert(std::is_base_of<IPacket, PacketType>::value, "PacketType must inherit from IPacket");
+		static_assert(std::is_base_of<IPacket, PacketType>::value, "RegisterPacket() : PacketType must inherit from IPacket");
 		PacketFactoryFunction factoryFunc = []()
 		{
 			return std::make_shared<PacketType>();
@@ -123,6 +123,7 @@ public:
 	template <typename PacketType>
 	void RegisterPacketHandler()
 	{
+		static_assert(std::is_base_of<IPacket, PacketType>::value, "RegisterPacketHandler() : PacketType must inherit from IPacket");
 		auto handler = [](RIOTestSession& session, std::any& packet)
 		{
 			auto realPacket = static_cast<PacketType*>(std::any_cast<IPacket*>(packet));
