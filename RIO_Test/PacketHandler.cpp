@@ -9,7 +9,7 @@ PacketManager& PacketManager::GetInst()
 
 void PacketManager::Init()
 {
-	REGISTER_HANDLER()
+	REGISTER_ALL_HANDLER()
 }
 
 std::shared_ptr<IPacket> PacketManager::MakePacket(PacketId packetId)

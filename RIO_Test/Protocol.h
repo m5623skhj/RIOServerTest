@@ -39,15 +39,15 @@ public:
 #define REGISTER_PACKET(PacketType){\
 	PacketManager::GetInst().RegisterPacket<PacketType>();\
 }
-#define REGISTER_PACKET_HANDLER(PacketType)\
+#define REGISTER_HANDLER(PacketType)\
 	PacketManager::GetInst().RegisterPacketHandler<PacketType>();
 
 #define DECLARE_HANDLE_PACKET(PacketType)\
 	static bool HandlePacket(RIOTestSession& session, PacketType& packet);\
 
-#define REGISTER_HANDLER()\
-	REGISTER_PACKET_HANDLER(TestStringPacket)\
-	REGISTER_PACKET_HANDLER(EchoStringPacket)\
+#define REGISTER_ALL_HANDLER()\
+	REGISTER_HANDLER(TestStringPacket)\
+	REGISTER_HANDLER(EchoStringPacket)\
 	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
