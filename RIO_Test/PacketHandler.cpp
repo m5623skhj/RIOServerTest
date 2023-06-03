@@ -7,16 +7,21 @@ PacketManager& PacketManager::GetInst()
 	return instance;
 }
 
+void PacketManager::Init()
+{
+	REGISTER_HANDLER()
+}
+
 std::shared_ptr<IPacket> PacketManager::MakePacket(PacketId packetId)
 {
-	auto iter = packetMap.find(packetId);
-	if (iter == packetMap.end())
+	auto iter = packetFactoryFunctionMap.find(packetId);
+	if (iter == packetFactoryFunctionMap.end())
 	{
 		return nullptr;
 	}
 
-	return nullptr;
-	//return std::make_shared<IPacket>();
+	auto factoryFunc = iter->second;
+	return factoryFunc();
 }
 
 PacketHandler PacketManager::GetPacketHandler(PacketId packetId)
@@ -30,18 +35,7 @@ PacketHandler PacketManager::GetPacketHandler(PacketId packetId)
 	return iter->second;
 }
 
-void PacketManager::RegisterPacket(PacketId packetId, std::shared_ptr<IPacket> packet)
-{
-
-}
-
-void PacketManager::RegisterPacketHandler(PacketId packetId, PacketHandler& packetHandler)
-{
-	
-}
-
-template<>
-bool RIOTestSession::PacketHanedler(RIOTestSession& session, TestStringPacket& packet)
+bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& packet)
 {
 	UNREFERENCED_PARAMETER(session);
 	UNREFERENCED_PARAMETER(packet);
@@ -49,8 +43,7 @@ bool RIOTestSession::PacketHanedler(RIOTestSession& session, TestStringPacket& p
 	return true;
 }
 
-template<>
-bool RIOTestSession::PacketHanedler(RIOTestSession& session, EchoStringPacket& packet)
+bool PacketManager::HandlePacket(RIOTestSession& session, EchoStringPacket& packet)
 {
 	UNREFERENCED_PARAMETER(session);
 	UNREFERENCED_PARAMETER(packet);

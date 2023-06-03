@@ -73,7 +73,7 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 	recvPacket >> packetId;
 
 	auto packetHandler = PacketManager::GetInst().GetPacketHandler(packetId);
-	if (packetHandler != nullptr)
+	if (packetHandler == nullptr)
 	{
 		return;
 	}
@@ -83,7 +83,8 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 	{
 		return;
 	}
-	memcpy(packet.get(), recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
 
-	//packetHandler(*this, *(packet.get()));
+	//memcpy(packet.get(), recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
+	std::any anyPacket = std::any(packet.get());
+	packetHandler(*this, anyPacket);
 }

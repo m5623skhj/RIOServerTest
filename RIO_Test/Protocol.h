@@ -36,23 +36,24 @@ public:
 	char echoString[30];
 };
 
-#define INPUT_TO_MAP(InputMap, InputItem){\
-		InputMap.emplace(0, std::make_shared<InputItem>());\
-	}
-
-#define REGISTER_PACKET(...){\
-	INPUT_TO_MAP(PacketManager::GetInst().packetMap, __VA_ARGS__);\
+#define REGISTER_PACKET(PacketType){\
+	PacketManager::GetInst().RegisterPacket<PacketType>();\
 }
+#define REGISTER_PACKET_HANDLER(PacketType)\
+	PacketManager::GetInst().RegisterPacketHandler<PacketType>();
 
-#define REGISTER_PACKET_HANDLER(...){\
-	INPUT_TO_MAP(PacketManager::GetInst().packetHandlerMap, __VA_ARGS__);\
-}
+#define DECLARE_HANDLE_PACKET(PacketType)\
+	static bool HandlePacket(RIOTestSession& session, PacketType& packet);\
 
-#define PACKET_LIST\
-	TestStringPacket\
-	, EchoStringPacket
+#define REGISTER_HANDLER()\
+	REGISTER_PACKET_HANDLER(TestStringPacket)\
+	REGISTER_PACKET_HANDLER(EchoStringPacket)\
+	
+#define DECLARE_ALL_HANDLER()\
+	DECLARE_HANDLE_PACKET(TestStringPacket)\
+	DECLARE_HANDLE_PACKET(EchoStringPacket)\
 
 #define REGISTER_PACKET_LIST(){\
-	REGISTER_PACKET(PACKET_LIST);\
+	REGISTER_PACKET(TestStringPacket)\
+	REGISTER_PACKET(EchoStringPacket)\
 }
-/*REGISTER_PACKET_HANDLER(PACKET_LIST);\*/
