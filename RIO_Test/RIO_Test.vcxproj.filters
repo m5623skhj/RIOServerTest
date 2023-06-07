@@ -27,6 +27,9 @@
     <Filter Include="Protocol">
       <UniqueIdentifier>{4b2ea87c-ea0c-4375-a12f-fff316a4773d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PacketManager">
+      <UniqueIdentifier>{979f810d-a2f9-4926-988d-9d61ef3b2977}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -65,6 +68,9 @@
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Protocol</Filter>
     </ClCompile>
+    <ClCompile Include="PacketManager.cpp">
+      <Filter>PacketManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -90,6 +96,9 @@
     </ClInclude>
     <ClInclude Include="Protocol.h">
       <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketManager.h">
+      <Filter>PacketManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

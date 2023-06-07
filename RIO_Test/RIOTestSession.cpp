@@ -1,5 +1,6 @@
 #include "PreCompile.h"
 #include "RIOTestSession.h"
+#include "PacketManager.h"
 
 #include "BuildConfig.h"
 #include "DefineType.h"
