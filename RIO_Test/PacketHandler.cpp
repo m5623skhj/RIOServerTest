@@ -8,6 +8,8 @@ bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& pack
 	UNREFERENCED_PARAMETER(session);
 	UNREFERENCED_PARAMETER(packet);
 
+	std::cout << packet.testString << std::endl;
+
 	return true;
 }
 

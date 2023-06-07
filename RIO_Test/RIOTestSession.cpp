@@ -85,7 +85,13 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 		return;
 	}
 
-	//memcpy(packet.get(), recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
+	if (packet->GetPacketSize() <= recvPacket.GetUseSize())
+	{
+		return;
+	}
+
+	char* targetPtr = reinterpret_cast<char*>(packet.get()) + sizeof(char*);
+	memcpy(targetPtr, recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
 	std::any anyPacket = std::any(packet.get());
 	packetHandler(*this, anyPacket);
 }
