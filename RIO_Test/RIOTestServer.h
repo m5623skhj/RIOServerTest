@@ -18,9 +18,16 @@ class RIOTestSession;
 
 class RIOTestServer
 {
-public:
+private:
 	RIOTestServer();
 	~RIOTestServer() = default;
+
+public:
+	static RIOTestServer& GetInst()
+	{
+		static RIOTestServer instance;
+		return instance;
+	}
 
 public:
 	bool StartServer(const std::wstring& optionFileName);
@@ -69,6 +76,9 @@ private:
 #pragma endregion rio
 
 #pragma region io
+public:
+	void SendPacket(OUT RIOTestSession& session, OUT NetBuffer& packet);
+
 private:
 	IO_POST_ERROR RecvPost(OUT RIOTestSession& session);
 	IO_POST_ERROR SendPost(OUT RIOTestSession& session);

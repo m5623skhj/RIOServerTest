@@ -10,6 +10,7 @@
 
 class RIOTestServer;
 class RIOTestSession;
+class IPacket;
 
 struct IOContext : RIO_BUF
 {
@@ -55,9 +56,10 @@ public:
 
 public:
 	void SendPacket(NetBuffer& packet);
+	void SendPacket(IPacket& packet);
 	void SendPacketAndDisconnect(NetBuffer& packet);
+	void SendPacketAndDisconnect(IPacket& packet);
 	void Disconnect();
-	void SendPacketAndDisConnect(NetBuffer& packet);
 
 	void OnRecvPacket(NetBuffer& packet);
 

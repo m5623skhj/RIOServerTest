@@ -12,7 +12,7 @@ int main()
 		PacketManager::GetInst().Init();
 	}
 
-	RIOTestServer server;
+	RIOTestServer& server = RIOTestServer::GetInst();
 	server.StartServer(L"OptionFile/ServerOption.txt");
 
 	REGISTER_PACKET_LIST();

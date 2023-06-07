@@ -1,6 +1,7 @@
 #include "PreCompile.h"
 #include "RIOTestSession.h"
 #include "PacketManager.h"
+#include "RIOTestServer.h"
 
 #include "BuildConfig.h"
 #include "DefineType.h"
@@ -47,24 +48,46 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 	return true;
 }
 
+void RIOTestSession::SendPacket(IPacket& packet)
+{
+	NetBuffer* buffer = NetBuffer::Alloc();
+	if (buffer == nullptr)
+	{
+		std::cout << "buffer is nullptr" << std::endl;
+		return;
+	}
+
+	buffer->WriteBuffer((char*)&packet, packet.GetPacketSize());
+	SendPacket(*buffer);
+}
+
 void RIOTestSession::SendPacket(NetBuffer& packet)
 {
-	UNREFERENCED_PARAMETER(packet);
+	RIOTestServer::GetInst().SendPacket(*this, packet);
+}
+
+void RIOTestSession::SendPacketAndDisconnect(IPacket& packet)
+{
+	NetBuffer* buffer = NetBuffer::Alloc();
+	if (buffer == nullptr)
+	{
+		std::cout << "buffer is nullptr" << std::endl;
+		return;
+	}
+
+	buffer->WriteBuffer((char*)&packet, packet.GetPacketSize());
+	SendPacket(*buffer);
 }
 
 void RIOTestSession::SendPacketAndDisconnect(NetBuffer& packet)
 {
-	UNREFERENCED_PARAMETER(packet);
+	sendDisconnect = true;
+	RIOTestServer::GetInst().SendPacket(*this, packet);
 }
 
 void RIOTestSession::Disconnect()
 {
 
-}
-
-void RIOTestSession::SendPacketAndDisConnect(NetBuffer& packet)
-{
-	UNREFERENCED_PARAMETER(packet);
 }
 
 void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)

@@ -573,6 +573,20 @@ bool RIOTestServer::InitializeRIO()
 	return true;
 }
 
+void RIOTestServer::SendPacket(OUT RIOTestSession& session, OUT NetBuffer& packet)
+{
+	if (packet.m_bIsEncoded == false)
+	{
+		packet.m_iWriteLast = packet.m_iWrite;
+		packet.m_iWrite = 0;
+		packet.m_iRead = 0;
+		packet.Encode();
+	}
+
+	session.sendOverlapped.sendQueue.Enqueue(&packet);
+	SendPost(session);
+}
+
 IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 {
 	if (session.recvOverlapped.recvRingBuffer.IsFull() == true)
@@ -628,7 +642,9 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 			return IO_POST_ERROR::SUCCESS;
 		}
 
-		RIO_BUF buffer[ONE_SEND_WSABUF_MAX];
+		// 일단 버퍼 크기에 따른 송신 자체는 된다.
+		// 내용물은 어디에 넣어야하지?
+		IOContext context[ONE_SEND_WSABUF_MAX];
 		if (ONE_SEND_WSABUF_MAX < bufferCount)
 		{
 			bufferCount = ONE_SEND_WSABUF_MAX;
@@ -637,16 +653,17 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		for (int i = 0; i < bufferCount; ++i)
 		{
 			session.sendOverlapped.sendQueue.Dequeue(&session.sendOverlapped.storedBuffer[i]);
-			int bufferUseSize = session.sendOverlapped.storedBuffer[i]->GetAllUseSize();
-			buffer[i].Length = bufferUseSize;
-			memcpy_s(&buffer[i], bufferUseSize, session.sendOverlapped.storedBuffer[i], bufferUseSize);
+			
+			context->InitContext(&session, RIO_OPERATION_TYPE::OP_SEND);
+			context->BufferId = session.bufferId;
+			context->Length = session.sendOverlapped.storedBuffer[i]->GetAllUseSize();
+			context->Offset = 0;
 		}
 
 		{
-			if (rioFunctionTable.RIOSendEx(session.rioRQ, buffer, bufferCount
-				, NULL, NULL, NULL, NULL, NULL, buffer) == TRUE)
+			if (rioFunctionTable.RIOSend(session.rioRQ, context, bufferCount, NULL, context) == FALSE)
 			{
-				PrintError("RIOSendEx", GetLastError());
+				PrintError("RIOSend", GetLastError());
 				return IO_POST_ERROR::FAILED_SEND_POST;
 			}
 		}
