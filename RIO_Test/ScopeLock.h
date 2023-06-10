@@ -29,3 +29,5 @@ private:
 };
 
 #define SCOPE_LOCK(lock) ScopeCriticalSection scopeLock_##__LINE__(lock)
+
+#define SCOPE_MUTEX(lock) std::lock_guard scopeLock_##__LINE__(lock);

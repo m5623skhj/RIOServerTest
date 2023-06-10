@@ -610,6 +610,7 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 	context->Length = restSize;
 	context->Offset = 0;
 	{
+		SCOPE_MUTEX(session.rioRQLock);
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
 		{
 			PrintError("RIOReceive", GetLastError());
@@ -661,7 +662,8 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		}
 
 		{
-			if (rioFunctionTable.RIOSend(session.rioRQ, context, bufferCount, NULL, context) == FALSE)
+			SCOPE_MUTEX(session.rioRQLock);
+			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, bufferCount, NULL, context) == FALSE)
 			{
 				PrintError("RIOSend", GetLastError());
 				return IO_POST_ERROR::FAILED_SEND_POST;

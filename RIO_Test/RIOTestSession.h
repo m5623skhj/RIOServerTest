@@ -7,6 +7,7 @@
 #include "EnumType.h"
 #include "DefineType.h"
 #include "NetServerSerializeBuffer.h"
+#include <mutex>
 
 class RIOTestServer;
 class RIOTestSession;
@@ -34,7 +35,6 @@ struct OverlappedForSend : public OVERLAPPED
 	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
 	NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
-	RIO_BUF rioBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
 };
 
@@ -80,6 +80,7 @@ private:
 	OVERLAPPED postQueueOverlapped;
 
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
+	std::mutex rioRQLock;
 
 	RIO_BUFFERID bufferId;
 #pragma endregion IO
