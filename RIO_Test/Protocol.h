@@ -7,8 +7,9 @@
 
 using PacketId = unsigned int;
 
-#define SET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this); }
+#define SET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
 
+#pragma pack(push, 1)
 class IPacket
 {
 public:
@@ -42,6 +43,7 @@ public:
 public:
 	char echoString[30];
 };
+#pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
 	PacketManager::GetInst().RegisterPacket<PacketType>();\
