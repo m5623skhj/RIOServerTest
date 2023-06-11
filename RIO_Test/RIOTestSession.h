@@ -23,17 +23,15 @@ struct IOContext : RIO_BUF
 	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
 };
 
-struct OverlappedForRecv : public OVERLAPPED
+struct OverlappedForRecv
 {
 	WORD bufferCount = 0;
 	CRingbuffer recvRingBuffer;
 	RIO_BUFFERID recvBufferId;
 };
 
-struct OverlappedForSend : public OVERLAPPED
+struct OverlappedForSend
 {
-	IO_MODE ioMode = IO_MODE::IO_NONE_SENDING;
-	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
 	//NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
@@ -51,7 +49,7 @@ public:
 	virtual ~RIOTestSession() = default;
 
 private:
-	bool InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ);
+	bool InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ);
 
 public:
 	virtual void OnClientEntered() {}
@@ -75,7 +73,6 @@ private:
 
 #pragma region IO
 private:
-	LONG ioCount = 0;
 	UINT nowPostQueuing = 0;
 
 	OverlappedForRecv recvOverlapped;

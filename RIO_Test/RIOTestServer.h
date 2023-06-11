@@ -43,8 +43,8 @@ private:
 
 	ULONG RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults);
 	IOContext* GetIOCompletedContext(RIORESULT& rioResult);
-	void RecvIOCompleted(RIORESULT* rioResults);
-	void SendIOCompleted(RIORESULT* rioResults);
+	void RecvIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId);
+	void SendIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId);
 private:
 	IO_POST_ERROR RecvCompleted(RIOTestSession& session, DWORD transferred);
 	IO_POST_ERROR SendCompleted(RIOTestSession& session);
@@ -63,9 +63,8 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ rioRecvCQ;
-	RIO_CQ rioSendCQ;
-	SRWLOCK rioCQLock;
+	RIO_CQ* rioRecvCQList;
+	RIO_CQ* rioSendCQList;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
@@ -101,7 +100,6 @@ private:
 
 private:
 	SOCKET listenSocket;
-	HANDLE iocpHandle;
 
 #pragma region session
 public:

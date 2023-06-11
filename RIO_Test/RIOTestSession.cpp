@@ -20,15 +20,11 @@ RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 
 }
 
-bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
+bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
 {
-	InterlockedIncrement(&ioCount);
-
 	u_long arg = 1;
 	ioctlsocket(socket, FIONBIO, &arg);
 
-	ZeroMemory(static_cast<OVERLAPPED*>(&recvOverlapped), sizeof(OVERLAPPED));
-	ZeroMemory(static_cast<OVERLAPPED*>(&sendOverlapped), sizeof(OVERLAPPED));
 	ZeroMemory(&postQueueOverlapped, sizeof(postQueueOverlapped));
 
 	recvOverlapped.recvRingBuffer.InitPointer();
