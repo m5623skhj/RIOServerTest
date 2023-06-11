@@ -33,8 +33,14 @@ bool RIOTestSession::InitSession(HANDLE iocpHandle, const RIO_EXTENSION_FUNCTION
 
 	recvOverlapped.recvRingBuffer.InitPointer();
 
-	bufferId = rioFunctionTable.RIORegisterBuffer(recvOverlapped.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
-	if (bufferId == RIO_INVALID_BUFFERID)
+	recvOverlapped.recvBufferId = rioFunctionTable.RIORegisterBuffer(recvOverlapped.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	if (recvOverlapped.recvBufferId == RIO_INVALID_BUFFERID)
+	{
+		return false;
+	}
+
+	sendOverlapped.sendBufferId = rioFunctionTable.RIORegisterBuffer(sendOverlapped.sendRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	if (sendOverlapped.sendBufferId == RIO_INVALID_BUFFERID)
 	{
 		return false;
 	}
@@ -57,7 +63,7 @@ void RIOTestSession::SendPacket(IPacket& packet)
 		return;
 	}
 
-	buffer->WriteBuffer((char*)&packet, packet.GetPacketSize());
+	buffer->WriteBuffer((char*)(&packet) + 8, packet.GetPacketSize());
 	SendPacket(*buffer);
 }
 

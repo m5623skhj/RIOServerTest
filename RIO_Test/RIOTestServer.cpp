@@ -378,11 +378,11 @@ IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transf
 
 IO_POST_ERROR RIOTestServer::SendCompleted(RIOTestSession& session)
 {
-	int bufferCount = session.sendOverlapped.bufferCount;
-	for (int i = 0; i < bufferCount; ++i)
-	{
-		NetBuffer::Free(session.sendOverlapped.storedBuffer[i]);
-	}
+	//int bufferCount = session.sendOverlapped.bufferCount;
+	//for (int i = 0; i < bufferCount; ++i)
+	//{
+	//	NetBuffer::Free(session.sendOverlapped.storedBuffer[i]);
+	//}
 
 	// session.OnSend();
 	IO_POST_ERROR result;
@@ -507,22 +507,22 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 		sessionMap.erase(releaseSession.sessionId);
 	}
 
-	int sendBufferRestCount = releaseSession.sendOverlapped.bufferCount;
-	int rest = releaseSession.sendOverlapped.sendQueue.GetRestSize();
-	
-	for (int i = 0; i < sendBufferRestCount; ++i)
-	{
-		NetBuffer::Free(releaseSession.sendOverlapped.storedBuffer[i]);
-	}
+	//int sendBufferRestCount = releaseSession.sendOverlapped.bufferCount;
+	//int rest = releaseSession.sendOverlapped.sendQueue.GetRestSize();
+	//
+	//for (int i = 0; i < sendBufferRestCount; ++i)
+	//{
+	//	NetBuffer::Free(releaseSession.sendOverlapped.storedBuffer[i]);
+	//}
 
-	NetBuffer* deleteBuffer;
-	while (rest > 0)
-	{
-		releaseSession.sendOverlapped.sendQueue.Dequeue(&deleteBuffer);
-		NetBuffer::Free(deleteBuffer);
+	//NetBuffer* deleteBuffer;
+	//while (rest > 0)
+	//{
+	//	releaseSession.sendOverlapped.sendQueue.Dequeue(&deleteBuffer);
+	//	NetBuffer::Free(deleteBuffer);
 
-		--rest;
-	}
+	//	--rest;
+	//}
 
 	closesocket(releaseSession.socket);
 	InterlockedDecrement(&sessionCount);
@@ -606,9 +606,9 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 
 	auto context = contextPool.Alloc();
 	context->InitContext(&session, RIO_OPERATION_TYPE::OP_RECV);
-	context->BufferId = session.bufferId;
+	context->BufferId = session.recvOverlapped.recvBufferId;
 	context->Length = restSize;
-	context->Offset = 0;
+	context->Offset = session.rioOffset % DEFAULT_RINGBUFFER_MAX;
 	{
 		SCOPE_MUTEX(session.rioRQLock);
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
@@ -643,27 +643,33 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 			return IO_POST_ERROR::SUCCESS;
 		}
 
-		// 일단 버퍼 크기에 따른 송신 자체는 된다.
-		// 내용물은 어디에 넣어야하지?
-		IOContext context[ONE_SEND_WSABUF_MAX];
-		if (ONE_SEND_WSABUF_MAX < bufferCount)
-		{
-			bufferCount = ONE_SEND_WSABUF_MAX;
-		}
+		int contextCount = 1;
+		IOContext* context = contextPool.Alloc();
+		context->InitContext(&session, RIO_OPERATION_TYPE::OP_SEND);
+		context->BufferId = session.sendOverlapped.sendBufferId;
+		context->Offset = 0;//(ULONG)session.sendOverlapped.sendRingBuffer.GetReadBufferPtr();
+		context->ioType = RIO_OPERATION_TYPE::OP_SEND;
 
+		int restBufferSize = session.sendOverlapped.sendRingBuffer.GetNotBrokenPutSize();
+		NetBuffer* bufferPtr;
 		for (int i = 0; i < bufferCount; ++i)
 		{
-			session.sendOverlapped.sendQueue.Dequeue(&session.sendOverlapped.storedBuffer[i]);
-			
-			context->InitContext(&session, RIO_OPERATION_TYPE::OP_SEND);
-			context->BufferId = session.bufferId;
-			context->Length = session.sendOverlapped.storedBuffer[i]->GetAllUseSize();
-			context->Offset = 0;
+			session.sendOverlapped.sendQueue.Dequeue(&bufferPtr);
+			if (bufferPtr->GetAllUseSize() > restBufferSize)
+			{
+				// TODO :
+				// 다시 넣을 수 있는 방법이 없으므로 백업을 해야할 듯
+				// 백업 버퍼는 가장 먼저 확인하고 먼저 집어어야 함
+				break;
+			}
+
+			session.sendOverlapped.sendRingBuffer.Enqueue(bufferPtr->GetBufferPtr(), bufferPtr->GetAllUseSize());
 		}
+		context->Length = session.sendOverlapped.sendRingBuffer.GetUseSize();
 
 		{
 			SCOPE_MUTEX(session.rioRQLock);
-			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, bufferCount, NULL, context) == FALSE)
+			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, contextCount, NULL, context) == FALSE)
 			{
 				PrintError("RIOSend", GetLastError());
 				return IO_POST_ERROR::FAILED_SEND_POST;

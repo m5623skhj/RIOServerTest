@@ -27,6 +27,7 @@ struct OverlappedForRecv : public OVERLAPPED
 {
 	WORD bufferCount = 0;
 	CRingbuffer recvRingBuffer;
+	RIO_BUFFERID recvBufferId;
 };
 
 struct OverlappedForSend : public OVERLAPPED
@@ -34,8 +35,10 @@ struct OverlappedForSend : public OVERLAPPED
 	IO_MODE ioMode = IO_MODE::IO_NONE_SENDING;
 	IO_MODE nowPostQueuing = IO_MODE::IO_NONE_SENDING;
 	WORD bufferCount = 0;
-	NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
+	//NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
+	CRingbuffer sendRingBuffer;
+	RIO_BUFFERID sendBufferId;
 };
 
 class RIOTestSession
@@ -82,6 +85,6 @@ private:
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
 	std::mutex rioRQLock;
 
-	RIO_BUFFERID bufferId;
+	ULONG rioOffset = 0;
 #pragma endregion IO
 };
