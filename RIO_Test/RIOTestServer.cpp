@@ -107,13 +107,11 @@ void RIOTestServer::StopServer()
 
 	for (int i = 0; i < numOfWorkerThread; ++i)
 	{
-		rioFunctionTable.RIOCloseCompletionQueue(rioSendCQList[i]);
-		rioFunctionTable.RIOCloseCompletionQueue(rioRecvCQList[i]);
+		rioFunctionTable.RIOCloseCompletionQueue(rioCQList[i]);
 	}
 	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
 
-	delete[] rioSendCQList;
-	delete[] rioRecvCQList;
+	delete[] rioCQList;
 
 	delete[] workerOnList;
 }
@@ -186,97 +184,49 @@ IOContext* RIOTestServer::GetIOCompletedContext(RIORESULT& rioResult)
 
 	if (rioResult.BytesTransferred == 0 || session->ioCancle == true)
 	{
-		ReleaseSession(*session);
+		IOCountDecrement(*session);
+		return nullptr;
 	}
 
 	return context;
 }
 
-void RIOTestServer::RecvIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId)
+IO_POST_ERROR RIOTestServer::IOCompleted(IOContext& context, ULONG transferred, RIOTestSession& session, BYTE threadId)
 {
-	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
-
-	for (ULONG i = 0; i < numOfResults; ++i)
+	if (context.ioType == RIO_OPERATION_TYPE::OP_RECV)
 	{
-		auto context = GetIOCompletedContext(rioResults[i]);
-		if (context == nullptr)
-		{
-			continue;
-		}
-
-		if (context->ioType == RIO_OPERATION_TYPE::OP_RECV)
-		{
-			if (context->ownerSession == nullptr)
-			{
-				continue;
-			}
-			if (context->ownerSession->disconnectedSession == true)
-			{
-				contextPool.Free(context);
-				continue;
-			}
-
-			result = RecvCompleted(*context->ownerSession, rioResults[i].BytesTransferred);
-		}
-		else
-		{
-			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
-			contextPool.Free(context);
-			
-			return;
-		}
-
-		contextPool.Free(context);
-
-		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
-		{
-			continue;
-		}
+		return RecvIOCompleted(transferred, session, threadId);
+	}
+	else if (context.ioType == RIO_OPERATION_TYPE::OP_SEND)
+	{
+		return SendIOCompleted(transferred, session, threadId);
+	}
+	else
+	{
+		InvalidIOCompleted(context);
+		return IO_POST_ERROR::INVALID_OPERATION_TYPE;
 	}
 }
 
-void RIOTestServer::SendIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId)
+IO_POST_ERROR RIOTestServer::RecvIOCompleted(ULONG transferred, RIOTestSession& session, BYTE threadId)
 {
-	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
+	return RecvCompleted(session, transferred);
+}
 
-	for (ULONG i = 0; i < numOfResults; ++i)
-	{
-		auto context = GetIOCompletedContext(rioResults[i]);
-		if (context == nullptr)
-		{
-			continue;
-		}
+IO_POST_ERROR RIOTestServer::SendIOCompleted(ULONG transferred, RIOTestSession& session, BYTE threadId)
+{
+	session.rioSendOffset += transferred;
+	session.sendItem.sendRingBuffer.RemoveData(transferred);
+	
+	return SendCompleted(session);
+}
 
-		auto session = context->ownerSession;
-		if (session == nullptr)
-		{
-			continue;
-		}
+void RIOTestServer::InvalidIOCompleted(IOContext& context)
+{
+	cout << "IO context is invalid " << static_cast<int>(context.ioType) << endl;
 
-		session->rioSendOffset += rioResults[i].BytesTransferred;
-		session->sendOverlapped.sendRingBuffer.RemoveData(rioResults[i].BytesTransferred);
-		if (context->ioType == RIO_OPERATION_TYPE::OP_SEND)
-		{
-			result = SendCompleted(*session);
-		}
-		else
-		{
-			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
-
-			context->ReleaseIOContext();
-			contextPool.Free(context);
-
-			return;
-		}
-
-		context->ReleaseIOContext();
-		contextPool.Free(context);
-
-		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
-		{
-			continue;
-		}
-	}
+	IOCountDecrement(*context.ownerSession);
+	contextPool.Free(&context);
 }
 
 void RIOTestServer::Accepter()
@@ -320,10 +270,8 @@ void RIOTestServer::Worker(BYTE inThreadId)
 {
 	std::shared_ptr<RIOTestSession> session;
 
-	RIORESULT rioRecvResults[MAX_RIO_RESULT];
-	RIORESULT rioSendResults[MAX_RIO_RESULT];
-	rioRecvCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_CLIENT_SEND_SIZE, nullptr);
-	rioSendCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_CLIENT_SEND_SIZE, nullptr);
+	RIORESULT rioResults[MAX_RIO_RESULT];
+	rioCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_CLIENT_SEND_SIZE, nullptr);
 
 	ULONG numOfResults = 0;
 
@@ -331,30 +279,48 @@ void RIOTestServer::Worker(BYTE inThreadId)
 
 	while (true)
 	{
-		ZeroMemory(rioRecvResults, sizeof(rioRecvResults));
-		ZeroMemory(rioSendResults, sizeof(rioSendResults));
+		ZeroMemory(rioResults, sizeof(rioResults));
 
-		numOfResults = rioFunctionTable.RIODequeueCompletion(rioRecvCQList[inThreadId], rioRecvResults, MAX_RIO_RESULT);
-		RecvIOCompleted(rioRecvResults, numOfResults, inThreadId);
+		numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQList[inThreadId], rioResults, MAX_RIO_RESULT);
 
-		numOfResults = rioFunctionTable.RIODequeueCompletion(rioSendCQList[inThreadId], rioSendResults, MAX_RIO_RESULT);
-		SendIOCompleted(rioSendResults, numOfResults, inThreadId);
+		for (ULONG i = 0; i < numOfResults; ++i)
+		{
+			IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
+			auto context = GetIOCompletedContext(rioResults[i]);
+			if (context == nullptr)
+			{
+				continue;
+			}
 
-		Sleep(1000);
+			result = IOCompleted(*context, rioResults[i].BytesTransferred, *context->ownerSession, inThreadId);
+			if (result == IO_POST_ERROR::INVALID_OPERATION_TYPE)
+			{
+				continue;
+			}
+			contextPool.Free(context);
+
+			if (result == IO_POST_ERROR::IS_DELETED_SESSION)
+			{
+				continue;
+			}
+			IOCountDecrement(*context->ownerSession);
+		}
+
+		Sleep(33);
 	}
 }
 
 IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transferred)
 {
-	session.recvOverlapped.recvRingBuffer.MoveWritePos(transferred);
-	int restSize = session.recvOverlapped.recvRingBuffer.GetUseSize();
+	session.recvItem.recvRingBuffer.MoveWritePos(transferred);
+	int restSize = session.recvItem.recvRingBuffer.GetUseSize();
 	bool packetError = false;
 	IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
 
 	while (restSize > df_HEADER_SIZE)
 	{
 		NetBuffer& buffer = *NetBuffer::Alloc();
-		session.recvOverlapped.recvRingBuffer.Peek((char*)(buffer.m_pSerializeBuffer), df_HEADER_SIZE);
+		session.recvItem.recvRingBuffer.Peek((char*)(buffer.m_pSerializeBuffer), df_HEADER_SIZE);
 		buffer.m_iRead = 0;
 
 		WORD payloadLength = GetPayloadLength(buffer, restSize);
@@ -363,9 +329,9 @@ IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transf
 			packetError = true;
 			break;
 		}
-		session.recvOverlapped.recvRingBuffer.RemoveData(df_HEADER_SIZE);
+		session.recvItem.recvRingBuffer.RemoveData(df_HEADER_SIZE);
 
-		int dequeuedSize = session.recvOverlapped.recvRingBuffer.Dequeue(&buffer.m_pSerializeBuffer[buffer.m_iWrite], payloadLength);
+		int dequeuedSize = session.recvItem.recvRingBuffer.Dequeue(&buffer.m_pSerializeBuffer[buffer.m_iWrite], payloadLength);
 		buffer.m_iWrite += dequeuedSize;
 		if (buffer.Decode() == false)
 		{
@@ -449,40 +415,48 @@ void RIOTestServer::Disconnect(UINT64 sessionId)
 	shutdown(session->second->socket, SD_BOTH);
 }
 
-bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
+std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClientSocket)
 {
 	UINT64 newSessionId = InterlockedIncrement(&nextSessionId);
 	if (newSessionId == INVALID_SESSION_ID)
 	{
-		return false;
+		return nullptr;
 	}
 
-	auto newSession = make_shared<RIOTestSession>(enteredClientSocket, newSessionId);
+	return make_shared<RIOTestSession>(enteredClientSocket, newSessionId);
+}
+
+
+bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
+{
+	auto newSession = GetNewSession(enteredClientSocket);
 	if (newSession == nullptr)
 	{
 		return false;
 	}
+	InterlockedIncrement(&newSession->ioCount);
 
+	if (newSession->InitSession(rioFunctionTable, rioNotiCompletion, rioCQList[threadId], rioCQList[threadId]) == false)
 	{
-		if (newSession->InitSession(rioFunctionTable, rioNotiCompletion, rioRecvCQList[threadId], rioSendCQList[threadId]) == false)
-		{
-			PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
-			return false;
-		}
+		PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
+		return false;
 	}
 
 	do
 	{
 		{
 			SCOPE_WRITE_LOCK(sessionMapLock);
-			if (sessionMap.emplace(newSessionId, newSession).second == false)
+			if (sessionMap.emplace(newSession->sessionId, newSession).second == false)
 			{
+				IOCountDecrement(*newSession);
+
 				PrintError("RIOTestServer::MakeNewSession.emplace", GetLastError());
 				break;
 			}
 		}
 
 		RecvPost(*newSession);
+		IOCountDecrement(*newSession);
 
 		newSession->OnClientEntered();
 
@@ -496,16 +470,22 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 {
 	closesocket(releaseSession.socket);
-	InterlockedDecrement(&sessionCount);
-
-	releaseSession.disconnectedSession = true;
-
 	{
 		SCOPE_WRITE_LOCK(sessionMapLock);
 		sessionMap.erase(releaseSession.sessionId);
 	}
 
+	InterlockedDecrement(&sessionCount);
+
 	return true;
+}
+
+void RIOTestServer::IOCountDecrement(RIOTestSession& session)
+{
+	if (InterlockedDecrement(&session.ioCount) == 0)
+	{
+		ReleaseSession(session);
+	}
 }
 
 bool RIOTestServer::InitializeRIO()
@@ -519,14 +499,8 @@ bool RIOTestServer::InitializeRIO()
 		return false;
 	}
 
-	rioRecvCQList = new RIO_CQ[numOfWorkerThread];
-	if (rioRecvCQList == nullptr)
-	{
-		return false;
-	}
-
-	rioSendCQList = new RIO_CQ[numOfWorkerThread];
-	if (rioSendCQList == nullptr)
+	rioCQList = new RIO_CQ[numOfWorkerThread];
+	if (rioCQList == nullptr)
 	{
 		return false;
 	}
@@ -544,18 +518,18 @@ void RIOTestServer::SendPacket(OUT RIOTestSession& session, OUT NetBuffer& packe
 		packet.Encode();
 	}
 
-	session.sendOverlapped.sendQueue.Enqueue(&packet);
+	session.sendItem.sendQueue.Enqueue(&packet);
 	SendPost(session);
 }
 
 IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 {
-	int brokenSize = session.recvOverlapped.recvRingBuffer.GetNotBrokenGetSize();
-	int restSize = session.recvOverlapped.recvRingBuffer.GetNotBrokenPutSize() - brokenSize;
+	int brokenSize = session.recvItem.recvRingBuffer.GetNotBrokenGetSize();
+	int restSize = session.recvItem.recvRingBuffer.GetNotBrokenPutSize() - brokenSize;
 
 	auto context = contextPool.Alloc();
 	context->InitContext(&session, RIO_OPERATION_TYPE::OP_RECV);
-	context->BufferId = session.recvOverlapped.recvBufferId;
+	context->BufferId = session.recvItem.recvBufferId;
 	context->Length = restSize;
 	context->Offset = session.rioRecvOffset % DEFAULT_RINGBUFFER_MAX;
 	{
@@ -566,7 +540,8 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 			return IO_POST_ERROR::FAILED_RECV_POST;
 		}
 	}
-
+	
+	InterlockedIncrement(&session.ioCount);
 	return IO_POST_ERROR::SUCCESS;
 }
 
@@ -574,7 +549,7 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 {
 	while (1)
 	{
-		int bufferCount = session.sendOverlapped.sendQueue.GetRestSize();
+		int bufferCount = session.sendItem.sendQueue.GetRestSize();
 		if (bufferCount == 0)
 		{
 			return IO_POST_ERROR::SUCCESS;
@@ -583,15 +558,15 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		int contextCount = 1;
 		IOContext* context = contextPool.Alloc();
 		context->InitContext(&session, RIO_OPERATION_TYPE::OP_SEND);
-		context->BufferId = session.sendOverlapped.sendBufferId;
+		context->BufferId = session.sendItem.sendBufferId;
 		context->Offset = session.rioSendOffset % DEFAULT_RINGBUFFER_MAX;
 		context->ioType = RIO_OPERATION_TYPE::OP_SEND;
 
-		int restBufferSize = session.sendOverlapped.sendRingBuffer.GetNotBrokenPutSize();
+		int restBufferSize = session.sendItem.sendRingBuffer.GetNotBrokenPutSize();
 		NetBuffer* bufferPtr;
 		for (int i = 0; i < bufferCount; ++i)
 		{
-			session.sendOverlapped.sendQueue.Dequeue(&bufferPtr);
+			session.sendItem.sendQueue.Dequeue(&bufferPtr);
 			if (bufferPtr->GetAllUseSize() > restBufferSize)
 			{
 				// TODO :
@@ -600,22 +575,24 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 				break;
 			}
 
-			session.sendOverlapped.sendRingBuffer.Enqueue(bufferPtr->GetBufferPtr(), bufferPtr->GetAllUseSize());
+			session.sendItem.sendRingBuffer.Enqueue(bufferPtr->GetBufferPtr(), bufferPtr->GetAllUseSize());
 		}
-		context->Length = session.sendOverlapped.sendRingBuffer.GetUseSize();
-
+		context->Length = session.sendItem.sendRingBuffer.GetUseSize();
+		InterlockedIncrement(&session.ioCount);
 		{
 			SCOPE_MUTEX(session.rioRQLock);
 			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, contextCount, NULL, context) == FALSE)
 			{
 				PrintError("RIOSend", GetLastError());
+				IOCountDecrement(session);
+
 				return IO_POST_ERROR::FAILED_SEND_POST;
 			}
 		}
-
+		
 		return IO_POST_ERROR::SUCCESS;
-
 	}
+
 	return IO_POST_ERROR::IS_DELETED_SESSION;
 }
 

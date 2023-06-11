@@ -43,8 +43,12 @@ private:
 
 	ULONG RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults);
 	IOContext* GetIOCompletedContext(RIORESULT& rioResult);
-	void RecvIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId);
-	void SendIOCompleted(RIORESULT* rioResults, ULONG numOfResults, BYTE threadId);
+
+	IO_POST_ERROR IOCompleted(IOContext& context, ULONG transferred, RIOTestSession& session, BYTE threadId);
+
+	IO_POST_ERROR RecvIOCompleted(ULONG transferred, RIOTestSession& session, BYTE threadId);
+	IO_POST_ERROR SendIOCompleted(ULONG transferred, RIOTestSession& session, BYTE threadId);
+	void InvalidIOCompleted(IOContext& context);
 private:
 	IO_POST_ERROR RecvCompleted(RIOTestSession& session, DWORD transferred);
 	IO_POST_ERROR SendCompleted(RIOTestSession& session);
@@ -63,8 +67,7 @@ private:
 private:
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 
-	RIO_CQ* rioRecvCQList;
-	RIO_CQ* rioSendCQList;
+	RIO_CQ* rioCQList;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
 	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
@@ -110,8 +113,11 @@ public:
 	void Disconnect(UINT64 sessionId);
 
 private:
+	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket);
 	bool MakeNewSession(SOCKET enteredClientSocket, BYTE threadId);
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);
+
+	void IOCountDecrement(RIOTestSession& session);
 
 private:
 	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;

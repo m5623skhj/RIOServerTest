@@ -13,15 +13,9 @@ void IOContext::InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE i
 	ioType = inIOType;
 }
 
-void IOContext::ReleaseIOContext()
-{
-	ownerSession = nullptr;
-}
-
 RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
-	, disconnectedSession(false)
 {
 
 }
@@ -33,16 +27,16 @@ bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunction
 
 	ZeroMemory(&postQueueOverlapped, sizeof(postQueueOverlapped));
 
-	recvOverlapped.recvRingBuffer.InitPointer();
+	recvItem.recvRingBuffer.InitPointer();
 
-	recvOverlapped.recvBufferId = rioFunctionTable.RIORegisterBuffer(recvOverlapped.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
-	if (recvOverlapped.recvBufferId == RIO_INVALID_BUFFERID)
+	recvItem.recvBufferId = rioFunctionTable.RIORegisterBuffer(recvItem.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	if (recvItem.recvBufferId == RIO_INVALID_BUFFERID)
 	{
 		return false;
 	}
 
-	sendOverlapped.sendBufferId = rioFunctionTable.RIORegisterBuffer(sendOverlapped.sendRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
-	if (sendOverlapped.sendBufferId == RIO_INVALID_BUFFERID)
+	sendItem.sendBufferId = rioFunctionTable.RIORegisterBuffer(sendItem.sendRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	if (sendItem.sendBufferId == RIO_INVALID_BUFFERID)
 	{
 		return false;
 	}

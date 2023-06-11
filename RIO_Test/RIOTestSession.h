@@ -19,20 +19,19 @@ struct IOContext : RIO_BUF
 	~IOContext() = default;
 
 	void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
-	void ReleaseIOContext();
 
 	RIOTestSession* ownerSession = nullptr;
 	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
 };
 
-struct OverlappedForRecv
+struct RecvItem
 {
 	WORD bufferCount = 0;
 	CRingbuffer recvRingBuffer;
 	RIO_BUFFERID recvBufferId;
 };
 
-struct OverlappedForSend
+struct SendItem
 {
 	WORD bufferCount = 0;
 	//NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
@@ -72,14 +71,13 @@ private:
 	
 	bool sendDisconnect = false;
 	bool ioCancle = false;
-	bool disconnectedSession = false;
 
 #pragma region IO
 private:
-	UINT nowPostQueuing = 0;
+	LONG ioCount = 0;
 
-	OverlappedForRecv recvOverlapped;
-	OverlappedForSend sendOverlapped;
+	RecvItem recvItem;
+	SendItem sendItem;
 	OVERLAPPED postQueueOverlapped;
 
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
