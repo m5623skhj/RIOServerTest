@@ -16,8 +16,10 @@ class IPacket;
 struct IOContext : RIO_BUF
 {
 	IOContext() = default;
+	~IOContext() = default;
 
 	void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
+	void ReleaseIOContext();
 
 	RIOTestSession* ownerSession = nullptr;
 	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
@@ -70,6 +72,7 @@ private:
 	
 	bool sendDisconnect = false;
 	bool ioCancle = false;
+	bool disconnectedSession = false;
 
 #pragma region IO
 private:

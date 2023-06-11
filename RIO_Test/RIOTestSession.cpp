@@ -13,9 +13,15 @@ void IOContext::InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE i
 	ioType = inIOType;
 }
 
+void IOContext::ReleaseIOContext()
+{
+	ownerSession = nullptr;
+}
+
 RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
+	, disconnectedSession(false)
 {
 
 }

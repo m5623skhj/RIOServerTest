@@ -178,7 +178,7 @@ IOContext* RIOTestServer::GetIOCompletedContext(RIORESULT& rioResult)
 		return nullptr;
 	}
 
-	RIOTestSession* session = context->ownerSession;
+	auto session = context->ownerSession;
 	if (session == nullptr)
 	{
 		return nullptr;
@@ -204,16 +204,29 @@ void RIOTestServer::RecvIOCompleted(RIORESULT* rioResults, ULONG numOfResults, B
 			continue;
 		}
 
-		RIOTestSession* session = context->ownerSession;
 		if (context->ioType == RIO_OPERATION_TYPE::OP_RECV)
 		{
-			result = RecvCompleted(*session, rioResults[i].BytesTransferred);
+			if (context->ownerSession == nullptr)
+			{
+				continue;
+			}
+			if (context->ownerSession->disconnectedSession == true)
+			{
+				contextPool.Free(context);
+				continue;
+			}
+
+			result = RecvCompleted(*context->ownerSession, rioResults[i].BytesTransferred);
 		}
 		else
 		{
 			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
+			contextPool.Free(context);
+			
 			return;
 		}
+
+		contextPool.Free(context);
 
 		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
 		{
@@ -234,7 +247,7 @@ void RIOTestServer::SendIOCompleted(RIORESULT* rioResults, ULONG numOfResults, B
 			continue;
 		}
 
-		RIOTestSession* session = context->ownerSession;
+		auto session = context->ownerSession;
 		if (session == nullptr)
 		{
 			continue;
@@ -249,8 +262,15 @@ void RIOTestServer::SendIOCompleted(RIORESULT* rioResults, ULONG numOfResults, B
 		else
 		{
 			cout << "IO context is invalid " << static_cast<int>(context->ioType) << endl;
+
+			context->ReleaseIOContext();
+			contextPool.Free(context);
+
 			return;
 		}
+
+		context->ReleaseIOContext();
+		contextPool.Free(context);
 
 		if (result == IO_POST_ERROR::IS_DELETED_SESSION)
 		{
@@ -475,13 +495,15 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 
 bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 {
+	closesocket(releaseSession.socket);
+	InterlockedDecrement(&sessionCount);
+
+	releaseSession.disconnectedSession = true;
+
 	{
 		SCOPE_WRITE_LOCK(sessionMapLock);
 		sessionMap.erase(releaseSession.sessionId);
 	}
-
-	closesocket(releaseSession.socket);
-	InterlockedDecrement(&sessionCount);
 
 	return true;
 }
