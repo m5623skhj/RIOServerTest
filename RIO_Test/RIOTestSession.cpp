@@ -59,7 +59,9 @@ void RIOTestSession::SendPacket(IPacket& packet)
 		return;
 	}
 
+	*buffer << packet.GetPacketId();
 	buffer->WriteBuffer((char*)(&packet) + 8, packet.GetPacketSize());
+
 	SendPacket(*buffer);
 }
 

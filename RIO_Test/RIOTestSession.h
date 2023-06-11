@@ -82,6 +82,7 @@ private:
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
 	std::mutex rioRQLock;
 
-	ULONG rioOffset = 0;
+	ULONG rioRecvOffset = 0;
+	ULONG rioSendOffset = 0;
 #pragma endregion IO
 };

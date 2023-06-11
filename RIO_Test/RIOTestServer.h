@@ -72,6 +72,8 @@ private:
 	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
 	OVERLAPPED rioCQOverlapped;
+
+	bool* workerOnList;
 #pragma endregion rio
 
 #pragma region io
