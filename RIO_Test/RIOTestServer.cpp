@@ -561,6 +561,7 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		context->Offset = 0;
 		context->ioType = RIO_OPERATION_TYPE::OP_SEND;
 		context->Length = MakeSendStream(session, context);
+
 		InterlockedIncrement(&session.ioCount);
 		{
 			SCOPE_MUTEX(session.rioRQLock);
@@ -588,6 +589,10 @@ ULONG RIOTestServer::MakeSendStream(OUT RIOTestSession& session, OUT IOContext* 
 	if (session.sendItem.reservedBuffer != nullptr)
 	{
 		int useSize = session.sendItem.reservedBuffer->GetAllUseSize();
+		if (IsValidPacketSize(useSize) == false)
+		{
+			return 0;
+		}
 
 		memcpy_s(bufferPositionPointer, MAX_SEND_BUFFER_SIZE
 			, session.sendItem.reservedBuffer->GetBufferPtr(), useSize);
@@ -603,6 +608,11 @@ ULONG RIOTestServer::MakeSendStream(OUT RIOTestSession& session, OUT IOContext* 
 		session.sendItem.sendQueue.Dequeue(&netBufferPtr);
 		
 		int useSize = netBufferPtr->GetAllUseSize();
+		if (IsValidPacketSize(useSize) == false)
+		{
+			return 0;
+		}
+
 		totalSendSize += useSize;
 		if (totalSendSize >= MAX_SEND_BUFFER_SIZE)
 		{
@@ -615,6 +625,22 @@ ULONG RIOTestServer::MakeSendStream(OUT RIOTestSession& session, OUT IOContext* 
 	}
 
 	return totalSendSize;
+}
+
+bool RIOTestServer::IsValidPacketSize(int bufferSize)
+{
+	if (bufferSize < MAX_SEND_BUFFER_SIZE)
+	{
+		return true;
+	}
+
+	// 서버에서 Send를 할건데,
+	// MAX_SEND_BUFFER_SIZE 보다 크다면, 일단 패킷 설계 비정상으로 정의함
+	// TODO : 
+	// Bunch 로 수정
+	g_Dump.Crash();
+
+	return false;
 }
 
 bool RIOTestServer::ServerOptionParsing(const std::wstring& optionFileName)

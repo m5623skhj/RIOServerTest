@@ -88,6 +88,7 @@ private:
 	IO_POST_ERROR SendPost(OUT RIOTestSession& session);
 
 	ULONG MakeSendStream(OUT RIOTestSession& session, OUT IOContext* context);
+	bool IsValidPacketSize(int bufferSize);
 private:
 	CTLSMemoryPool<IOContext> contextPool;
 #pragma endregion io
