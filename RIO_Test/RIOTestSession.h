@@ -36,7 +36,9 @@ struct SendItem
 	WORD bufferCount = 0;
 	//NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
-	CRingbuffer sendRingBuffer;
+	//CRingbuffer sendRingBuffer;
+	char rioSendBuffer[MAX_SEND_BUFFER_SIZE];
+	NetBuffer* reservedBuffer = nullptr;
 	RIO_BUFFERID sendBufferId;
 };
 
@@ -66,6 +68,9 @@ public:
 	void OnRecvPacket(NetBuffer& packet);
 
 private:
+	void OnSessionReleased(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable);
+
+private:
 	SOCKET socket;
 	SessionId sessionId = INVALID_SESSION_ID;
 	
@@ -84,6 +89,5 @@ private:
 	std::mutex rioRQLock;
 
 	ULONG rioRecvOffset = 0;
-	ULONG rioSendOffset = 0;
 #pragma endregion IO
 };

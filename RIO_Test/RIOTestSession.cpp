@@ -17,7 +17,7 @@ RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
 {
-
+	sendItem.reservedBuffer = nullptr;
 }
 
 bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
@@ -35,7 +35,7 @@ bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunction
 		return false;
 	}
 
-	sendItem.sendBufferId = rioFunctionTable.RIORegisterBuffer(sendItem.sendRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
+	sendItem.sendBufferId = rioFunctionTable.RIORegisterBuffer(sendItem.rioSendBuffer, MAX_SEND_BUFFER_SIZE);
 	if (sendItem.sendBufferId == RIO_INVALID_BUFFERID)
 	{
 		return false;
@@ -121,4 +121,10 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 	memcpy(targetPtr, recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
 	std::any anyPacket = std::any(packet.get());
 	packetHandler(*this, anyPacket);
+}
+
+void RIOTestSession::OnSessionReleased(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable)
+{
+	rioFunctionTable.RIODeregisterBuffer(recvItem.recvBufferId);
+	rioFunctionTable.RIODeregisterBuffer(sendItem.sendBufferId);
 }

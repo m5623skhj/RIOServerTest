@@ -215,9 +215,6 @@ IO_POST_ERROR RIOTestServer::RecvIOCompleted(ULONG transferred, RIOTestSession& 
 
 IO_POST_ERROR RIOTestServer::SendIOCompleted(ULONG transferred, RIOTestSession& session, BYTE threadId)
 {
-	session.rioSendOffset += transferred;
-	session.sendItem.sendRingBuffer.RemoveData(transferred);
-	
 	return SendCompleted(session);
 }
 
@@ -271,7 +268,7 @@ void RIOTestServer::Worker(BYTE inThreadId)
 	std::shared_ptr<RIOTestSession> session;
 
 	RIORESULT rioResults[MAX_RIO_RESULT];
-	rioCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_CLIENT_SEND_SIZE, nullptr);
+	rioCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_SEND_BUFFER_SIZE, nullptr);
 
 	ULONG numOfResults = 0;
 
@@ -474,6 +471,7 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 		SCOPE_WRITE_LOCK(sessionMapLock);
 		sessionMap.erase(releaseSession.sessionId);
 	}
+	releaseSession.OnSessionReleased(rioFunctionTable);
 
 	InterlockedDecrement(&sessionCount);
 
@@ -532,6 +530,7 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 	context->BufferId = session.recvItem.recvBufferId;
 	context->Length = restSize;
 	context->Offset = session.rioRecvOffset % DEFAULT_RINGBUFFER_MAX;
+
 	{
 		SCOPE_MUTEX(session.rioRQLock);
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
@@ -549,8 +548,8 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 {
 	while (1)
 	{
-		int bufferCount = session.sendItem.sendQueue.GetRestSize();
-		if (bufferCount == 0)
+		if (session.sendItem.sendQueue.GetRestSize() == 0 &&
+			session.sendItem.reservedBuffer == nullptr)
 		{
 			return IO_POST_ERROR::SUCCESS;
 		}
@@ -559,25 +558,9 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 		IOContext* context = contextPool.Alloc();
 		context->InitContext(&session, RIO_OPERATION_TYPE::OP_SEND);
 		context->BufferId = session.sendItem.sendBufferId;
-		context->Offset = session.rioSendOffset % DEFAULT_RINGBUFFER_MAX;
+		context->Offset = 0;
 		context->ioType = RIO_OPERATION_TYPE::OP_SEND;
-
-		int restBufferSize = session.sendItem.sendRingBuffer.GetNotBrokenPutSize();
-		NetBuffer* bufferPtr;
-		for (int i = 0; i < bufferCount; ++i)
-		{
-			session.sendItem.sendQueue.Dequeue(&bufferPtr);
-			if (bufferPtr->GetAllUseSize() > restBufferSize)
-			{
-				// TODO :
-				// 다시 넣을 수 있는 방법이 없으므로 백업을 해야할 듯
-				// 백업 버퍼는 가장 먼저 확인하고 먼저 집어어야 함
-				break;
-			}
-
-			session.sendItem.sendRingBuffer.Enqueue(bufferPtr->GetBufferPtr(), bufferPtr->GetAllUseSize());
-		}
-		context->Length = session.sendItem.sendRingBuffer.GetUseSize();
+		context->Length = MakeSendStream(session, context);
 		InterlockedIncrement(&session.ioCount);
 		{
 			SCOPE_MUTEX(session.rioRQLock);
@@ -594,6 +577,44 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 	}
 
 	return IO_POST_ERROR::IS_DELETED_SESSION;
+}
+
+ULONG RIOTestServer::MakeSendStream(OUT RIOTestSession& session, OUT IOContext* context)
+{
+	int totalSendSize = 0;
+	int bufferCount = session.sendItem.sendQueue.GetRestSize();
+	char* bufferPositionPointer = session.sendItem.rioSendBuffer;
+	
+	if (session.sendItem.reservedBuffer != nullptr)
+	{
+		int useSize = session.sendItem.reservedBuffer->GetAllUseSize();
+
+		memcpy_s(bufferPositionPointer, MAX_SEND_BUFFER_SIZE
+			, session.sendItem.reservedBuffer->GetBufferPtr(), useSize);
+		
+		totalSendSize += useSize;
+		bufferPositionPointer += totalSendSize;
+		session.sendItem.reservedBuffer = nullptr;
+	}
+
+	NetBuffer* netBufferPtr;
+	for (int i = 0; i < bufferCount; ++i)
+	{
+		session.sendItem.sendQueue.Dequeue(&netBufferPtr);
+		
+		int useSize = netBufferPtr->GetAllUseSize();
+		totalSendSize += useSize;
+		if (totalSendSize >= MAX_SEND_BUFFER_SIZE)
+		{
+			session.sendItem.reservedBuffer = netBufferPtr;
+			break;
+		}
+
+		memcpy_s(session.sendItem.rioSendBuffer, MAX_SEND_BUFFER_SIZE - totalSendSize - useSize
+			, netBufferPtr->GetBufferPtr(), useSize);
+	}
+
+	return totalSendSize;
 }
 
 bool RIOTestServer::ServerOptionParsing(const std::wstring& optionFileName)

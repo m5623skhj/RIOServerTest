@@ -87,6 +87,7 @@ private:
 	IO_POST_ERROR RecvPost(OUT RIOTestSession& session);
 	IO_POST_ERROR SendPost(OUT RIOTestSession& session);
 
+	ULONG MakeSendStream(OUT RIOTestSession& session, OUT IOContext* context);
 private:
 	CTLSMemoryPool<IOContext> contextPool;
 #pragma endregion io
