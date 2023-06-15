@@ -2,7 +2,7 @@
 #include "RIOTestServer.h"
 #include "ScopeLock.h"
 #include "NetServerSerializeBuffer.h"
-#include <set>
+#include "Broadcaster.h"
 
 #include "BuildConfig.h"
 
@@ -178,7 +178,7 @@ IOContext* RIOTestServer::GetIOCompletedContext(RIORESULT& rioResult)
 	}
 
 	std::shared_ptr<RIOTestSession> session;
-	UINT64 sessionId = context->ownerSessionId;
+	SessionId sessionId = context->ownerSessionId;
 	{
 		SCOPE_READ_LOCK(sessionMapLock);
 		auto iter = sessionMap.find(sessionId);
@@ -273,6 +273,8 @@ void RIOTestServer::Accepter()
 			closesocket(enteredClientSocket);
 			continue;
 		}
+		Broadcaster::GetInst().OnSessionEntered();
+
 		InterlockedIncrement(&sessionCount);
 	}
 }
@@ -287,7 +289,6 @@ void RIOTestServer::Worker(BYTE inThreadId)
 	ULONG numOfResults = 0;
 
 	workerOnList[inThreadId] = true;
-	std::set<RIOTestSession*> deletedSessionList;
 
 	while (true)
 	{
@@ -422,7 +423,7 @@ UINT RIOTestServer::GetSessionCount() const
 	return sessionCount;
 }
 
-void RIOTestServer::Disconnect(UINT64 sessionId)
+void RIOTestServer::Disconnect(SessionId sessionId)
 {
 	SCOPE_READ_LOCK(sessionMapLock);
 	auto session = sessionMap.find(sessionId);
@@ -436,7 +437,7 @@ void RIOTestServer::Disconnect(UINT64 sessionId)
 
 std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClientSocket)
 {
-	UINT64 newSessionId = InterlockedIncrement(&nextSessionId);
+	SessionId newSessionId = InterlockedIncrement(&nextSessionId);
 	if (newSessionId == INVALID_SESSION_ID)
 	{
 		return nullptr;
@@ -500,7 +501,7 @@ void RIOTestServer::IOCountDecrement(RIOTestSession& session)
 	}
 }
 
-std::shared_ptr<RIOTestSession> RIOTestServer::GetSession(UINT64 sessionId)
+std::shared_ptr<RIOTestSession> RIOTestServer::GetSession(SessionId sessionId)
 {
 	SCOPE_READ_LOCK(sessionMapLock);
 	auto iter = sessionMap.find(sessionId);
@@ -511,21 +512,6 @@ std::shared_ptr<RIOTestSession> RIOTestServer::GetSession(UINT64 sessionId)
 	
 	return iter->second;
 }
-
-/*
-void RIOTestServer::IOCountDecrement(UINT64 sessionId)
-{
-	SCOPE_READ_LOCK(sessionMapLock);
-	auto iter = sessionMap.find(sessionId);
-	if (iter == sessionMap.end())
-	{
-		return;
-	}
-
-	auto session = iter->second;
-	IOCountDecrement(*session);
-}
-*/
 
 bool RIOTestServer::InitializeRIO()
 {

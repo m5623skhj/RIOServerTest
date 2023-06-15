@@ -30,6 +30,9 @@
     <Filter Include="PacketManager">
       <UniqueIdentifier>{979f810d-a2f9-4926-988d-9d61ef3b2977}</UniqueIdentifier>
     </Filter>
+    <Filter Include="BroadCaster">
+      <UniqueIdentifier>{30a9dc39-01c3-44c0-b46d-00aa6abb91f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -71,6 +74,9 @@
     <ClCompile Include="PacketManager.cpp">
       <Filter>PacketManager</Filter>
     </ClCompile>
+    <ClCompile Include="Broadcaster.cpp">
+      <Filter>BroadCaster</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -99,6 +105,9 @@
     </ClInclude>
     <ClInclude Include="PacketManager.h">
       <Filter>PacketManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Broadcaster.h">
+      <Filter>BroadCaster</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\PreCompile.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
+    <ClCompile Include="Broadcaster.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PacketManager.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="RIOTestSession.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Broadcaster.h" />
     <ClInclude Include="BuildConfig.h" />
     <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />

@@ -7,21 +7,13 @@
 #include "DefineType.h"
 #include "EnumType.h"
 
-/*
-void IOContext::InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType)
-{
-	ownerSession = inOwnerSession;
-	ioType = inIOType;
-}
-*/
-
-void IOContext::InitContext(UINT64 inOwnerSessionId, RIO_OPERATION_TYPE inIOType)
+void IOContext::InitContext(SessionId inOwnerSessionId, RIO_OPERATION_TYPE inIOType)
 {
 	ownerSessionId = inOwnerSessionId;
 	ioType = inIOType;
 }
 
-RIOTestSession::RIOTestSession(SOCKET inSocket, UINT64 inSessionId)
+RIOTestSession::RIOTestSession(SOCKET inSocket, SessionId inSessionId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
 {
@@ -104,7 +96,6 @@ void RIOTestSession::Disconnect()
 
 void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 {
-	// packet의 페이로드를 IPacket에 대입?
 	PacketId packetId;
 	recvPacket >> packetId;
 

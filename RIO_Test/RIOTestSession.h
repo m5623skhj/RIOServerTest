@@ -18,11 +18,9 @@ struct IOContext : RIO_BUF
 	IOContext() = default;
 	~IOContext() = default;
 
-	//void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
-	void InitContext(UINT64 inOwnerSessionId, RIO_OPERATION_TYPE inIOType);
+	void InitContext(SessionId inOwnerSessionId, RIO_OPERATION_TYPE inIOType);
 
-	//RIOTestSession* ownerSession = nullptr;
-	UINT64 ownerSessionId = 0;
+	SessionId ownerSessionId = 0;
 	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
 };
 
@@ -36,9 +34,7 @@ struct RecvItem
 struct SendItem
 {
 	WORD bufferCount = 0;
-	//NetBuffer* storedBuffer[ONE_SEND_WSABUF_MAX];
 	CLockFreeQueue<NetBuffer*> sendQueue;
-	//CRingbuffer sendRingBuffer;
 	char rioSendBuffer[MAX_SEND_BUFFER_SIZE];
 	NetBuffer* reservedBuffer = nullptr;
 	RIO_BUFFERID sendBufferId;
@@ -51,7 +47,7 @@ class RIOTestSession
 
 public:
 	RIOTestSession() = delete;
-	explicit RIOTestSession(SOCKET socket, UINT64 sessionId);
+	explicit RIOTestSession(SOCKET socket, SessionId sessionId);
 	virtual ~RIOTestSession() = default;
 
 private:

@@ -112,7 +112,7 @@ private:
 public:
 	UINT GetSessionCount() const;
 
-	void Disconnect(UINT64 sessionId);
+	void Disconnect(SessionId sessionId);
 
 private:
 	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket);
@@ -121,13 +121,13 @@ private:
 
 	void IOCountDecrement(RIOTestSession& session);
 
-	std::shared_ptr<RIOTestSession> GetSession(UINT64 sessionId);
+	std::shared_ptr<RIOTestSession> GetSession(SessionId sessionId);
 
 private:
 	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
 	SRWLOCK sessionMapLock;
 
-	UINT64 nextSessionId = INVALID_SESSION_ID + 1;
+	SessionId nextSessionId = INVALID_SESSION_ID + 1;
 
 	UINT sessionCount = 0;
 #pragma endregion session
