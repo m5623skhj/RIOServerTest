@@ -121,6 +121,8 @@ private:
 
 	void IOCountDecrement(RIOTestSession& session);
 
+	std::shared_ptr<RIOTestSession> GetSession(UINT64 sessionId);
+
 private:
 	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
 	SRWLOCK sessionMapLock;

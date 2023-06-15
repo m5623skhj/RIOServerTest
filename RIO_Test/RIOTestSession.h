@@ -18,9 +18,11 @@ struct IOContext : RIO_BUF
 	IOContext() = default;
 	~IOContext() = default;
 
-	void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
+	//void InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType);
+	void InitContext(UINT64 inOwnerSessionId, RIO_OPERATION_TYPE inIOType);
 
-	RIOTestSession* ownerSession = nullptr;
+	//RIOTestSession* ownerSession = nullptr;
+	UINT64 ownerSessionId = 0;
 	RIO_OPERATION_TYPE ioType = RIO_OPERATION_TYPE::OP_ERROR;
 };
 
@@ -40,6 +42,7 @@ struct SendItem
 	char rioSendBuffer[MAX_SEND_BUFFER_SIZE];
 	NetBuffer* reservedBuffer = nullptr;
 	RIO_BUFFERID sendBufferId;
+	IO_MODE ioMode = IO_MODE::IO_NONE_SENDING;
 };
 
 class RIOTestSession
@@ -76,6 +79,8 @@ private:
 	
 	bool sendDisconnect = false;
 	bool ioCancle = false;
+
+	bool isReleasedSession = false;
 
 #pragma region IO
 private:

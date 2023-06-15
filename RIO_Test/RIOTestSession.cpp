@@ -7,9 +7,17 @@
 #include "DefineType.h"
 #include "EnumType.h"
 
+/*
 void IOContext::InitContext(RIOTestSession* inOwnerSession, RIO_OPERATION_TYPE inIOType)
 {
 	ownerSession = inOwnerSession;
+	ioType = inIOType;
+}
+*/
+
+void IOContext::InitContext(UINT64 inOwnerSessionId, RIO_OPERATION_TYPE inIOType)
+{
+	ownerSessionId = inOwnerSessionId;
 	ioType = inIOType;
 }
 
