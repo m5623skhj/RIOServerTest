@@ -20,8 +20,8 @@ public:
 	static Broadcaster& GetInst();
 
 private:
-	void OnSessionEntered();
-	void OnSessionLeaved();
+	void OnSessionEntered(SessionId enteredSessionId);
+	void OnSessionLeaved(SessionId enteredSessionId);
 
 private:
 	std::mutex sessionSetLock;

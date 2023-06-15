@@ -7,12 +7,18 @@ Broadcaster& Broadcaster::GetInst()
 	return instance;
 }
 
-void Broadcaster::OnSessionEntered()
+void Broadcaster::OnSessionEntered(SessionId enteredSessionId)
 {
-
+	{
+		std::lock_guard<std::mutex> guardLock(sessionSetLock);
+		sessionIdSet.insert(enteredSessionId);
+	}
 }
 
-void Broadcaster::OnSessionLeaved()
+void Broadcaster::OnSessionLeaved(SessionId enteredSessionId)
 {
-
+	{
+		std::lock_guard<std::mutex> guardLock(sessionSetLock);
+		sessionIdSet.erase(enteredSessionId);
+	}
 }

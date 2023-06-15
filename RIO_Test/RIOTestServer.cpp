@@ -273,7 +273,6 @@ void RIOTestServer::Accepter()
 			closesocket(enteredClientSocket);
 			continue;
 		}
-		Broadcaster::GetInst().OnSessionEntered();
 
 		InterlockedIncrement(&sessionCount);
 	}
@@ -478,6 +477,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 		RecvPost(*newSession);
 		IOCountDecrement(*newSession);
 
+		Broadcaster::GetInst().OnSessionEntered(newSession->sessionId);
 		newSession->OnClientEntered();
 
 		return true;
@@ -497,6 +497,7 @@ void RIOTestServer::IOCountDecrement(RIOTestSession& session)
 {
 	if (InterlockedDecrement(&session.ioCount) == 0)
 	{
+		Broadcaster::GetInst().OnSessionLeaved(session.sessionId);
 		ReleaseSession(session);
 	}
 }
