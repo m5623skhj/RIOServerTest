@@ -1,6 +1,7 @@
 #include "PreCompile.h"
 #include "PacketManager.h"
 #include "RIOTestSession.h"
+#include "Broadcaster.h"
 #include "Protocol.h"
 
 bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& packet)
@@ -12,6 +13,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& pack
 	memcpy(sendPacket.testString, packet.testString, sizeof(packet.testString));
 
 	session.SendPacket(sendPacket);
+	//Broadcaster::GetInst().BraodcastToAllSession(sendPacket);
 
 	return true;
 }

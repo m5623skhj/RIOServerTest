@@ -2,6 +2,8 @@
 #include <set>
 #include <mutex>
 #include "DefineType.h"
+#include "Protocol.h"
+#include "NetServerSerializeBuffer.h"
 
 class RIOTestServer;
 
@@ -18,6 +20,10 @@ private:
 
 public:
 	static Broadcaster& GetInst();
+
+public:
+	void BraodcastToAllSession(IPacket& packet);
+	void BraodcastToAllSession(NetBuffer& packet);
 
 private:
 	void OnSessionEntered(SessionId enteredSessionId);

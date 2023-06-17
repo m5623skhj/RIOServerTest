@@ -69,6 +69,9 @@ public:
 private:
 	void OnSessionReleased(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable);
 
+public:
+	bool IsReleasedSession() { return isReleasedSession; }
+
 private:
 	SOCKET socket;
 	SessionId sessionId = INVALID_SESSION_ID;
@@ -76,7 +79,7 @@ private:
 	bool sendDisconnect = false;
 	bool ioCancle = false;
 
-	bool isReleasedSession = false;
+	std::atomic_bool isReleasedSession = false;
 
 #pragma region IO
 private:

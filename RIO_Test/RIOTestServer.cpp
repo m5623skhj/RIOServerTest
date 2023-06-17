@@ -490,6 +490,8 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 {
 	closesocket(releaseSession.socket);
+	InterlockedDecrement(&sessionCount);
+
 	return true;
 }
 
@@ -558,7 +560,6 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 	context->BufferId = session.recvItem.recvBufferId;
 	context->Length = restSize;
 	context->Offset = session.rioRecvOffset % DEFAULT_RINGBUFFER_MAX;
-
 	{
 		SCOPE_MUTEX(session.rioRQLock);
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
@@ -574,37 +575,45 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 
 IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 {
-	if (session.sendItem.sendQueue.GetRestSize() == 0 &&
-		session.sendItem.reservedBuffer == nullptr)
+	while (1)
 	{
-		return IO_POST_ERROR::SUCCESS;
-	}
-
-	if (InterlockedCompareExchange((UINT*)&session.sendItem.ioMode, (UINT)IO_MODE::IO_SENDING, (UINT)IO_MODE::IO_NONE_SENDING))
-	{
-		return IO_POST_ERROR::SUCCESS;
-	}
-
-	int contextCount = 1;
-	IOContext* context = contextPool.Alloc();
-	context->InitContext(session.sessionId, RIO_OPERATION_TYPE::OP_SEND);
-	context->BufferId = session.sendItem.sendBufferId;
-	context->Offset = 0;
-	context->ioType = RIO_OPERATION_TYPE::OP_SEND;
-	context->Length = MakeSendStream(session, context);
-
-	InterlockedIncrement(&session.ioCount);
-	{
-		SCOPE_MUTEX(session.rioRQLock);
-		if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, contextCount, NULL, context) == FALSE)
+		if (InterlockedCompareExchange((UINT*)&session.sendItem.ioMode, (UINT)IO_MODE::IO_SENDING, (UINT)IO_MODE::IO_NONE_SENDING))
 		{
-			PrintError("RIOSend", GetLastError());
-			IOCountDecrement(session);
+			return IO_POST_ERROR::SUCCESS;
+		}
 
-			return IO_POST_ERROR::FAILED_SEND_POST;
+		if (session.sendItem.sendQueue.GetRestSize() == 0 &&
+			session.sendItem.reservedBuffer == nullptr)
+		{
+			InterlockedExchange((UINT*)&session.sendItem.ioMode, (UINT)IO_MODE::IO_NONE_SENDING);
+			if (session.sendItem.sendQueue.GetRestSize() > 0)
+			{
+				continue;
+			}
+			return IO_POST_ERROR::SUCCESS;
+		}
+
+		int contextCount = 1;
+		IOContext* context = contextPool.Alloc();
+		context->InitContext(session.sessionId, RIO_OPERATION_TYPE::OP_SEND);
+		context->BufferId = session.sendItem.sendBufferId;
+		context->Offset = 0;
+		context->ioType = RIO_OPERATION_TYPE::OP_SEND;
+		context->Length = MakeSendStream(session, context);
+
+		InterlockedIncrement(&session.ioCount);
+		{
+			SCOPE_MUTEX(session.rioRQLock);
+			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, contextCount, NULL, context) == FALSE)
+			{
+				PrintError("RIOSend", GetLastError());
+				IOCountDecrement(session);
+
+				return IO_POST_ERROR::FAILED_SEND_POST;
+			}
 		}
 	}
-	
+
 	return IO_POST_ERROR::SUCCESS;
 }
 
@@ -648,7 +657,7 @@ ULONG RIOTestServer::MakeSendStream(OUT RIOTestSession& session, OUT IOContext* 
 			break;
 		}
 
-		memcpy_s(session.sendItem.rioSendBuffer, MAX_SEND_BUFFER_SIZE - totalSendSize - useSize
+		memcpy_s(&session.sendItem.rioSendBuffer[totalSendSize - useSize], MAX_SEND_BUFFER_SIZE - totalSendSize - useSize
 			, netBufferPtr->GetBufferPtr(), useSize);
 	}
 

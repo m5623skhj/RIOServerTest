@@ -23,6 +23,8 @@ int main()
 	{
 		Sleep(1000);
 
+		std::cout << server.GetSessionCount() << std::endl;
+
 		if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
 		{
 			server.StopServer();

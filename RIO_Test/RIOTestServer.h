@@ -111,6 +111,7 @@ private:
 #pragma region session
 public:
 	UINT GetSessionCount() const;
+	std::shared_ptr<RIOTestSession> GetSession(SessionId sessionId);
 
 	void Disconnect(SessionId sessionId);
 
@@ -120,8 +121,6 @@ private:
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
 	void IOCountDecrement(RIOTestSession& session);
-
-	std::shared_ptr<RIOTestSession> GetSession(SessionId sessionId);
 
 private:
 	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
