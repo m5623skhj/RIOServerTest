@@ -343,9 +343,15 @@ IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transf
 		buffer.m_iRead = 0;
 
 		WORD payloadLength = GetPayloadLength(buffer, restSize);
-		if (payloadLength > dfDEFAULTSIZE)
+		if (payloadLength == 0)
+		{
+			NetBuffer::Free(&buffer);
+			break;
+		}
+		else if (payloadLength > dfDEFAULTSIZE)
 		{
 			packetError = true;
+			NetBuffer::Free(&buffer);
 			break;
 		}
 		session.recvItem.recvRingBuffer.RemoveData(df_HEADER_SIZE);
@@ -398,19 +404,13 @@ WORD RIOTestServer::GetPayloadLength(OUT NetBuffer& buffer, int restSize)
 
 	if (code != NetBuffer::m_byHeaderCode)
 	{
+		cout << "code : " << code << endl;
 		PrintError("GetPayloadLength/code error", 0);
-		NetBuffer::Free(&buffer);
 
 		return 0;
 	}
 	if (restSize < payloadLength + df_HEADER_SIZE)
 	{
-		if (payloadLength > dfDEFAULTSIZE)
-		{
-			PrintError("GetPayloadLength/payloadLength error", 0);
-		}
-		NetBuffer::Free(&buffer);
-		
 		return 0;
 	}
 
