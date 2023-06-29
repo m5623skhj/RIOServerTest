@@ -56,6 +56,9 @@ private:
 	WORD GetPayloadLength(OUT NetBuffer& buffer, int restSize);
 
 private:
+	BYTE GetMinimumSessionThreadId() const;
+
+private:
 	std::thread accepterThread;
 	std::vector<std::thread> workerThreads;
 #pragma endregion thread
@@ -116,8 +119,8 @@ public:
 	void Disconnect(SessionId sessionId);
 
 private:
-	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket);
-	bool MakeNewSession(SOCKET enteredClientSocket, BYTE threadId);
+	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket, BYTE threadId);
+	bool MakeNewSession(SOCKET enteredClientSocket);
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
 	void IOCountDecrement(RIOTestSession& session);
@@ -129,5 +132,8 @@ private:
 	SessionId nextSessionId = INVALID_SESSION_ID + 1;
 
 	UINT sessionCount = 0;
+
+private:
+	std::vector<UINT> numOfSessionInWorkerThread;
 #pragma endregion session
 };

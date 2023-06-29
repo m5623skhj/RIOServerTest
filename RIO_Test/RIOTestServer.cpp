@@ -268,7 +268,7 @@ void RIOTestServer::Accepter()
 
 		// 여기에서 해당 IP에 대한 처리 등을 하면 될 듯
 
-		if (MakeNewSession(enteredClientSocket, (nextSessionId % numOfWorkerThread)) == false)
+		if (MakeNewSession(enteredClientSocket) == false)
 		{
 			closesocket(enteredClientSocket);
 			continue;
@@ -417,6 +417,28 @@ WORD RIOTestServer::GetPayloadLength(OUT NetBuffer& buffer, int restSize)
 	return payloadLength;
 }
 
+
+BYTE RIOTestServer::GetMinimumSessionThreadId() const
+{
+	BYTE targetThreadId = 0;
+	UINT minimumSessionCount = maxClientCount;
+
+	for (BYTE threadId = 0; threadId < numOfSessionInWorkerThread.size(); ++threadId)
+	{
+		if (numOfSessionInWorkerThread[threadId] == 0)
+		{
+			return threadId;
+		}
+		else if (numOfSessionInWorkerThread[threadId] < minimumSessionCount)
+		{
+			minimumSessionCount = numOfSessionInWorkerThread[threadId];
+			targetThreadId = threadId;
+		}
+	}
+
+	return targetThreadId;
+}
+
 UINT RIOTestServer::GetSessionCount() const
 {
 	return sessionCount;
@@ -434,7 +456,7 @@ void RIOTestServer::Disconnect(SessionId sessionId)
 	shutdown(session->second->socket, SD_BOTH);
 }
 
-std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClientSocket)
+std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClientSocket, BYTE threadId)
 {
 	SessionId newSessionId = InterlockedIncrement(&nextSessionId);
 	if (newSessionId == INVALID_SESSION_ID)
@@ -442,13 +464,14 @@ std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClien
 		return nullptr;
 	}
 
-	return make_shared<RIOTestSession>(enteredClientSocket, newSessionId);
+	return make_shared<RIOTestSession>(enteredClientSocket, newSessionId, threadId);
 }
 
 
-bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
+bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
 {
-	auto newSession = GetNewSession(enteredClientSocket);
+	BYTE threadId = GetMinimumSessionThreadId();
+	auto newSession = GetNewSession(enteredClientSocket, threadId);
 	if (newSession == nullptr)
 	{
 		return false;
@@ -463,6 +486,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 
 	do
 	{
+		InterlockedIncrement(&numOfSessionInWorkerThread[threadId]);
 		{
 			SCOPE_WRITE_LOCK(sessionMapLock);
 			if (sessionMap.emplace(newSession->sessionId, newSession).second == false)
@@ -490,6 +514,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, BYTE threadId)
 bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 {
 	closesocket(releaseSession.socket);
+	InterlockedDecrement(&numOfSessionInWorkerThread[releaseSession.threadId]);
 	InterlockedDecrement(&sessionCount);
 
 	return true;
@@ -518,6 +543,11 @@ std::shared_ptr<RIOTestSession> RIOTestServer::GetSession(SessionId sessionId)
 
 bool RIOTestServer::InitializeRIO()
 {
+	for (int i = 0; i < numOfWorkerThread; ++i)
+	{
+		numOfSessionInWorkerThread.emplace_back(0);
+	}
+
 	GUID functionTableId = WSAID_MULTIPLE_RIO;
 	DWORD bytes = 0;
 	if (WSAIoctl(listenSocket, SIO_GET_MULTIPLE_EXTENSION_FUNCTION_POINTER, &functionTableId, sizeof(GUID)

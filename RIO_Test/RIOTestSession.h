@@ -47,7 +47,7 @@ class RIOTestSession
 
 public:
 	RIOTestSession() = delete;
-	explicit RIOTestSession(SOCKET socket, SessionId sessionId);
+	explicit RIOTestSession(SOCKET socket, SessionId sessionId, BYTE threadId);
 	virtual ~RIOTestSession() = default;
 
 private:
@@ -80,6 +80,8 @@ private:
 	bool ioCancle = false;
 
 	std::atomic_bool isReleasedSession = false;
+
+	BYTE threadId = UCHAR_MAX;
 
 #pragma region IO
 private:

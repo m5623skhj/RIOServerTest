@@ -13,9 +13,10 @@ void IOContext::InitContext(SessionId inOwnerSessionId, RIO_OPERATION_TYPE inIOT
 	ioType = inIOType;
 }
 
-RIOTestSession::RIOTestSession(SOCKET inSocket, SessionId inSessionId)
+RIOTestSession::RIOTestSession(SOCKET inSocket, SessionId inSessionId, BYTE inThreadId)
 	: socket(inSocket)
 	, sessionId(inSessionId)
+	, threadId(inThreadId)
 {
 	sendItem.reservedBuffer = nullptr;
 }
