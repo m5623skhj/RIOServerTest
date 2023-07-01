@@ -43,6 +43,31 @@ public:
 public:
 	char echoString[30];
 };
+
+class CallTestProcedurePacket : public IPacket
+{
+public:
+	CallTestProcedurePacket() = default;
+	~CallTestProcedurePacket() = default;
+	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_TEST_PROCEDURE_PACKET); }
+	SET_PACKET_SIZE();
+
+public:
+	int id3 = 0;
+	char testString[30];
+};
+
+class CallSelectTest2ProcedurePacket : public IPacket
+{
+public:
+	CallSelectTest2ProcedurePacket() = default;
+	~CallSelectTest2ProcedurePacket() = default;
+	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET); }
+	SET_PACKET_SIZE();
+
+public:
+	long long id = 0;
+};
 #pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
@@ -57,12 +82,18 @@ public:
 #define REGISTER_ALL_HANDLER()\
 	REGISTER_HANDLER(TestStringPacket)\
 	REGISTER_HANDLER(EchoStringPacket)\
+	REGISTER_HANDLER(CallTestProcedurePacket)\
+	REGISTER_HANDLER(CallSelectTest2ProcedurePacket)\
 	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
 	DECLARE_HANDLE_PACKET(EchoStringPacket)\
+	DECLARE_HANDLE_PACKET(CallTestProcedurePacket)\
+	DECLARE_HANDLE_PACKET(CallSelectTest2ProcedurePacket)\
 
 #define REGISTER_PACKET_LIST(){\
 	REGISTER_PACKET(TestStringPacket)\
 	REGISTER_PACKET(EchoStringPacket)\
+	REGISTER_PACKET(CallTestProcedurePacket)\
+	REGISTER_PACKET(CallSelectTest2ProcedurePacket)\
 }
