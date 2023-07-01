@@ -1,0 +1,60 @@
+#include "PreCompile.h"
+#include "DBClient.h"
+
+DBClient::DBClient()
+{
+}
+
+DBClient::~DBClient()
+{
+	Stop();
+}
+
+DBClient& DBClient::GetInstance()
+{
+	static DBClient instance;
+	return instance;
+}
+
+void DBClient::Start(const std::wstring& optionFile)
+{
+	if (CMultiLanClient::Start(optionFile.c_str()) == false)
+	{
+		g_Dump.Crash();
+	}
+}
+
+void DBClient::OnConnectionComplete(UINT64 sessionId)
+{
+
+}
+
+void DBClient::OnRecv(UINT64 sessionId, CSerializationBuf* OutReadBuf)
+{
+
+}
+
+void DBClient::OnSend(UINT64 sessionId)
+{
+
+}
+
+void DBClient::OnWorkerThreadBegin()
+{
+
+}
+
+void DBClient::OnWorkerThreadEnd()
+{
+
+}
+
+void DBClient::OnError(st_Error* OutError)
+{
+
+}
+
+void DBClient::OnDisconnect(UINT64 sessionId)
+{
+
+}

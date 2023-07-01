@@ -131,13 +131,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Desktop\Common\LanServerSerializeBuf.cpp" />
+    <ClCompile Include="..\..\..\..\Desktop\Common\Log.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\NetServerSerializeBuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\Parse.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\PreCompile.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\Ringbuffer.cpp" />
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
     <ClCompile Include="Broadcaster.cpp" />
+    <ClCompile Include="DBClient.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
+    <ClCompile Include="MultiLanClient.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PacketManager.cpp" />
     <ClCompile Include="ScopeLock.cpp" />
@@ -151,9 +155,11 @@
   <ItemGroup>
     <ClInclude Include="Broadcaster.h" />
     <ClInclude Include="BuildConfig.h" />
+    <ClInclude Include="DBClient.h" />
     <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />
     <ClInclude Include="EnumType.h" />
+    <ClInclude Include="MultiLanClient.h" />
     <ClInclude Include="PacketManager.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="ScopeLock.h" />

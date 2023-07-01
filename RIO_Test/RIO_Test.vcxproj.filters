@@ -33,6 +33,9 @@
     <Filter Include="BroadCaster">
       <UniqueIdentifier>{30a9dc39-01c3-44c0-b46d-00aa6abb91f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DBClient">
+      <UniqueIdentifier>{6cada8fa-1815-46c5-8be0-f34a374e7014}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -77,6 +80,18 @@
     <ClCompile Include="Broadcaster.cpp">
       <Filter>BroadCaster</Filter>
     </ClCompile>
+    <ClCompile Include="MultiLanClient.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="DBClient.cpp">
+      <Filter>DBClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\LanServerSerializeBuf.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Desktop\Common\Log.cpp">
+      <Filter>Include</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -108,6 +123,12 @@
     </ClInclude>
     <ClInclude Include="Broadcaster.h">
       <Filter>BroadCaster</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiLanClient.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="DBClient.h">
+      <Filter>DBClient</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
