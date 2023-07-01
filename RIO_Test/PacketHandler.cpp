@@ -31,9 +31,6 @@ bool PacketManager::HandlePacket(RIOTestSession& session, EchoStringPacket& pack
 
 bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacket& packet)
 {
-	UNREFERENCED_PARAMETER(session);
-	UNREFERENCED_PARAMETER(packet);
-
 	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
 	WORD packetId = DBServerProtocol::PACKET_ID::TEST;
 	buffer << packetId << session.GetSessionId() << packet.id3;
@@ -46,8 +43,11 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacke
 
 bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2ProcedurePacket& packet)
 {
-	UNREFERENCED_PARAMETER(session);
-	UNREFERENCED_PARAMETER(packet);
+	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
+	WORD packetId = DBServerProtocol::PACKET_ID::SELECT_TEST_2;
+	buffer << packetId << session.GetSessionId() << packet.id;
+
+	DBClient::GetInstance().CallProcedure(buffer);
 
 	return true;
 }
