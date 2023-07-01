@@ -114,7 +114,7 @@ bool CMultiLanClient::Start(const WCHAR *szOptionFileName)
 		++m_sessionIdGenerator;
 
 		RecvPost(*session);
-		OnConnectionComplete(session->m_SessionId);
+		OnConnectionComplete();
 	}
 
 	return true;
@@ -187,7 +187,7 @@ bool CMultiLanClient::LanClientOptionParsing(const WCHAR *szOptionFileName)
 
 bool CMultiLanClient::ReleaseSession(Session& session)
 {
-	OnDisconnect(session.m_SessionId);
+	OnDisconnect();
 	session.bIsConnect = false;
 
 	int SendBufferRestSize = session.m_SendIOData.lBufferCount;
@@ -298,7 +298,7 @@ UINT CMultiLanClient::Worker()
 					RecvSerializeBuf.m_iWrite += retval;
 
 					RingBufferRestSize -= (retval + sizeof(WORD));
-					OnRecv(session->m_SessionId, &RecvSerializeBuf);
+					OnRecv(&RecvSerializeBuf);
 					CSerializationBuf::Free(&RecvSerializeBuf);
 				}
 
@@ -315,7 +315,7 @@ UINT CMultiLanClient::Worker()
 
 				session->m_SendIOData.lBufferCount -= BufferCount;
 
-				OnSend(session->m_SessionId);
+				OnSend();
 				InterlockedExchange(&session->m_SendIOData.IOMode, NONSENDING); // 여기 다시 생각해 볼 것
 				cPostRetval = SendPost(*session);
 			}
@@ -422,7 +422,7 @@ UINT CMultiLanClient::Reconnecter()
 		RecvPost(*sessionList[releasedSessionId]);
 
 		++m_numOfReconnect;
-		OnConnectionComplete(sessionList[releasedSessionId]->m_SessionId);
+		OnConnectionComplete();
 
 		sessionReconnectIdList.pop_front();
 	}
@@ -487,12 +487,14 @@ char CMultiLanClient::RecvPost(Session& session)
 	return POST_RETVAL_COMPLETE;
 }
 
-bool CMultiLanClient::SendPacket(UINT64 sessionId, CSerializationBuf *pSerializeBuf)
+UINT64 CMultiLanClient::GetChannelId()
 {
-	if (sessionId >= m_sessionIdGenerator)
-	{
-		return false;
-	}
+	return m_channelSelector % m_byNumOfWorkerThread;
+}
+
+bool CMultiLanClient::SendPacket(CSerializationBuf *pSerializeBuf)
+{
+	UINT64 channelId = GetChannelId();
 
 	if (pSerializeBuf == NULL)
 	{
@@ -510,8 +512,8 @@ bool CMultiLanClient::SendPacket(UINT64 sessionId, CSerializationBuf *pSerialize
 	*pSerializeBuf << PayloadSize;
 	
 	// session에 대한 락을 좀 생각 해봐야할듯
-	sessionList[sessionId]->m_SendIOData.SendQ.Enqueue(pSerializeBuf);
-	SendPost(*sessionList[sessionId]);
+	sessionList[channelId]->m_SendIOData.SendQ.Enqueue(pSerializeBuf);
+	SendPost(*sessionList[channelId]);
 
 	return true;
 }

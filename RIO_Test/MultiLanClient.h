@@ -32,14 +32,14 @@ public:
 	bool Start(const WCHAR* szOptionFileName);
 	void Stop();
 
-	bool SendPacket(UINT64 sessionId, CSerializationBuf* pSerializeBuf);
+	bool SendPacket(CSerializationBuf* pSerializeBuf);
 	// 서버에 Connect 가 완료 된 후
-	virtual void OnConnectionComplete(UINT64 sessionId) = 0;
+	virtual void OnConnectionComplete() = 0;
 
 	// 패킷 수신 완료 후
-	virtual void OnRecv(UINT64 sessionId, CSerializationBuf* OutReadBuf) = 0;
+	virtual void OnRecv(CSerializationBuf* OutReadBuf) = 0;
 	// 패킷 송신 완료 후
-	virtual void OnSend(UINT64 sessionId) = 0;
+	virtual void OnSend() = 0;
 
 	// 워커스레드 GQCS 바로 하단에서 호출
 	virtual void OnWorkerThreadBegin() = 0;
@@ -48,7 +48,7 @@ public:
 	// 사용자 에러 처리 함수
 	virtual void OnError(st_Error* OutError) = 0;
 	// 이 세션이 서버에서 끊기면 호출
-	virtual void OnDisconnect(UINT64 sessionId) {}
+	virtual void OnDisconnect() {}
 
 private:
 	struct OVERLAPPEDIODATA
@@ -93,6 +93,10 @@ private:
 
 	bool ReleaseSession(Session& session);
 
+private:
+	UINT64 GetChannelId();
+
+private:
 	BYTE		m_byNumOfWorkerThread;
 	BYTE		m_byNumOfUsingWorkerThread;
 	bool		m_bIsNagleOn;
@@ -108,7 +112,10 @@ private:
 	HANDLE		m_hReconnecterHandle;
 
 	std::atomic<UINT64> m_sessionIdGenerator = 0;
+	std::atomic<UINT64> m_channelSelector = 0;
 
+	// sessionList라고 명명했지만, 데이터 채널이 더 맞는 표현인듯 하다
+	// 일단 sessionList도 틀린 표현은 아니므로 이대로 진행
 	std::vector<Session*> sessionList;
 
 	CRITICAL_SECTION reconnectListLock;

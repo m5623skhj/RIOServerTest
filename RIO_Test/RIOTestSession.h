@@ -71,6 +71,7 @@ private:
 
 public:
 	bool IsReleasedSession() { return isReleasedSession; }
+	SessionId GetSessionId() const { return sessionId; }
 
 private:
 	SOCKET socket;

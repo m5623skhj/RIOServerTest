@@ -24,17 +24,17 @@ void DBClient::Start(const std::wstring& optionFile)
 	}
 }
 
-void DBClient::OnConnectionComplete(UINT64 sessionId)
+void DBClient::OnConnectionComplete()
 {
 
 }
 
-void DBClient::OnRecv(UINT64 sessionId, CSerializationBuf* OutReadBuf)
+void DBClient::OnRecv(CSerializationBuf* OutReadBuf)
 {
 
 }
 
-void DBClient::OnSend(UINT64 sessionId)
+void DBClient::OnSend()
 {
 
 }
@@ -54,7 +54,12 @@ void DBClient::OnError(st_Error* OutError)
 
 }
 
-void DBClient::OnDisconnect(UINT64 sessionId)
+void DBClient::OnDisconnect()
 {
 
+}
+
+void DBClient::CallProcedure(CSerializationBuf& packet)
+{
+	CMultiLanClient::SendPacket(&packet);
 }
