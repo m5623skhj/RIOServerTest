@@ -54,7 +54,7 @@ public:
 
 public:
 	int id3 = 0;
-	char testString[30];
+	std::wstring testString[30];
 };
 
 class CallSelectTest2ProcedurePacket : public IPacket

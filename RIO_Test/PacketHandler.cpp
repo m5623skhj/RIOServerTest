@@ -4,6 +4,8 @@
 #include "Broadcaster.h"
 #include "Protocol.h"
 #include "DBClient.h"
+#include "../../DBConnector/DBConnector/DBServerProtocol.h"
+#include "LanServerSerializeBuf.h"
 
 bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& packet)
 {
@@ -31,6 +33,13 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacke
 {
 	UNREFERENCED_PARAMETER(session);
 	UNREFERENCED_PARAMETER(packet);
+
+	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
+	WORD packetId = DBServerProtocol::PACKET_ID::TEST;
+	buffer << packetId << session.GetSessionId() << packet.id3;
+	buffer.WriteBuffer((char*)packet.testString, sizeof(packet.testString));
+
+	DBClient::GetInstance().CallProcedure(buffer);
 
 	return true;
 }
