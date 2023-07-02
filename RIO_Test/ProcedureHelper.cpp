@@ -37,7 +37,7 @@ namespace ProcedureHelper
 
 	std::shared_ptr<IPacket> MakeProcedureResponse(OUT CSerializationBuf& recvPacket)
 	{
-		PacketId packetId;
+		UINT packetId;
 		recvPacket >> packetId;
 
 		auto packet = PacketManager::GetInst().MakePacket(packetId);
