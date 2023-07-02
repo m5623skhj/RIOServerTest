@@ -144,6 +144,7 @@
     <ClCompile Include="MultiLanClient.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PacketManager.cpp" />
+    <ClCompile Include="ProcedureHelper.cpp" />
     <ClCompile Include="ScopeLock.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="_main.cpp">
@@ -163,6 +164,7 @@
     <ClInclude Include="EnumType.h" />
     <ClInclude Include="MultiLanClient.h" />
     <ClInclude Include="PacketManager.h" />
+    <ClInclude Include="ProcedureHelper.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="RIOTestServer.h" />

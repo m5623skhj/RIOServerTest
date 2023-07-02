@@ -92,6 +92,9 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\Log.cpp">
       <Filter>Include</Filter>
     </ClCompile>
+    <ClCompile Include="ProcedureHelper.cpp">
+      <Filter>DBClient</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -135,6 +138,9 @@
     </ClInclude>
     <ClInclude Include="..\..\DBConnector\DBConnector\StoredProcedure.h">
       <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcedureHelper.h">
+      <Filter>DBClient</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

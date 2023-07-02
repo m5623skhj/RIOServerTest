@@ -1,5 +1,10 @@
 #include "PreCompile.h"
 #include "DBClient.h"
+#include "RIOTestServer.h"
+#include "LanServerSerializeBuf.h"
+#include "NetServerSerializeBuffer.h"
+#include "ProcedureHelper.h"
+#include <memory>
 
 DBClient::DBClient()
 {
@@ -31,7 +36,18 @@ void DBClient::OnConnectionComplete()
 
 void DBClient::OnRecv(CSerializationBuf* OutReadBuf)
 {
+	CSerializationBuf& buffer = *OutReadBuf;
+	UINT64 sessionId;
+	buffer >> sessionId;
 
+	auto session = RIOTestServer::GetInst().GetSession(sessionId);
+	if (session == nullptr)
+	{
+		return;
+	}
+	std::shared_ptr<IPacket> packet = ProcedureHelper::MakeProcedureResponse(buffer);
+
+	session->SendPacket(*packet);
 }
 
 void DBClient::OnSend()
