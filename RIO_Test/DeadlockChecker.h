@@ -5,9 +5,7 @@
 #include <functional>
 
 using CheckSameCount = WORD;
-using BeforeChecked = ULONG64;
-using UpdateCountGetter = std::function<WORD()>;
-using LockStateChecker = std::tuple<CheckSameCount, BeforeChecked, UpdateCountGetter>;
+using UpdateCountGetter = std::function<UINT64()>;
 
 class DeadlockChecker
 {
@@ -32,11 +30,12 @@ private:
 private:
 	std::thread checkerThread;
 
-	std::map<std::thread::id, LockStateChecker> checkerMap;
+	std::map<std::thread::id, const UpdateCountGetter&> checkerMap;
 	mutable std::mutex lock;
 		
 	// 20 seconds
-	CheckSameCount maxCheckCount = 20;
-	const DWORD checkSleepTime = 1000;
+	CheckSameCount maxCheckCount = 20000;
+	// 2 seconds
+	const DWORD checkSleepTime = 2000;
 #pragma endregion ThreadSatateCheck
 };

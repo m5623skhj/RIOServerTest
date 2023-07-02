@@ -3,6 +3,7 @@
 #include "ScopeLock.h"
 #include "NetServerSerializeBuffer.h"
 #include "Broadcaster.h"
+#include "DeadlockChecker.h"
 
 #include "BuildConfig.h"
 
@@ -289,9 +290,18 @@ void RIOTestServer::Worker(BYTE inThreadId)
 
 	workerOnList[inThreadId] = true;
 
+	UINT64 updatedTick = GetTickCount64();
+	std::function<UINT64()> getUpdatedTickFunc = [&updatedTick]()
+	{
+		return updatedTick;
+	};
+
+	DeadlockChecker::GetInstance().RegisterCheckThread(std::this_thread::get_id(), getUpdatedTickFunc);
+
 	while (true)
 	{
 		ZeroMemory(rioResults, sizeof(rioResults));
+		updatedTick = GetTickCount64();
 
 		numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQList[inThreadId], rioResults, MAX_RIO_RESULT);
 
@@ -327,6 +337,8 @@ void RIOTestServer::Worker(BYTE inThreadId)
 
 		Sleep(33);
 	}
+
+	DeadlockChecker::GetInstance().DeregisteredCheckThread(std::this_thread::get_id());
 }
 
 IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transferred)

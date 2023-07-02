@@ -23,7 +23,7 @@ bool DeadlockChecker::RegisterCheckThread(const std::thread::id& threadId, const
 {
 	{
 		std::lock_guard<std::mutex> guardLock(lock);
-		auto iter = checkerMap.insert({ threadId, LockStateChecker(0, 0, countGetterFunctor) });
+		auto iter = checkerMap.insert({ threadId, countGetterFunctor });
 		if (iter.second == false)
 		{
 			return false;
@@ -41,26 +41,23 @@ void DeadlockChecker::DeregisteredCheckThread(const std::thread::id& threadId)
 
 void DeadlockChecker::UpdateThreadState()
 {
-	Sleep(checkSleepTime);
+	while (true)
 	{
-		std::lock_guard<std::mutex> guardLock(lock);
-		
-		for (auto& iter : checkerMap)
-		{
-			WORD thisTickCount = std::get<2>(iter.second)();
-			if (thisTickCount != std::get<1>(iter.second))
-			{
-				++(std::get<0>(iter.second));
+		Sleep(checkSleepTime);
 
-				if (std::get<0>(iter.second) > maxCheckCount)
-				{
-					g_Dump.Crash();
-				}
-			}
-			else
+		UINT64 now = GetTickCount64();
+		{
+			std::lock_guard<std::mutex> guardLock(lock);
+
+			for (auto& iter : checkerMap)
 			{
-				std::get<0>(iter.second) = 0;
-				std::get<1>(iter.second) = thisTickCount;
+				UINT64 threadUpdatedTick = iter.second();
+				if (threadUpdatedTick >= now - maxCheckCount)
+				{
+					continue;
+				}
+			
+				g_Dump.Crash();
 			}
 		}
 	}
