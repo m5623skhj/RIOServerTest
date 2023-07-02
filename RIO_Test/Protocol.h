@@ -54,7 +54,7 @@ public:
 
 public:
 	int id3 = 0;
-	std::wstring testString[30];
+	WCHAR testString[30];
 };
 
 class CallSelectTest2ProcedurePacket : public IPacket
@@ -68,6 +68,31 @@ public:
 public:
 	long long id = 0;
 };
+
+class CallTestProcedurePacketReply : public IPacket
+{
+public:
+	CallTestProcedurePacketReply() = default;
+	~CallTestProcedurePacketReply() = default;
+	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY); }
+	SET_PACKET_SIZE();
+
+public:
+};
+
+class CallSelectTest2ProcedurePacketReply : public IPacket
+{
+public:
+	CallSelectTest2ProcedurePacketReply() = default;
+	~CallSelectTest2ProcedurePacketReply() = default;
+	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY); }
+	SET_PACKET_SIZE();
+
+public:
+	int no = 0;
+	WCHAR testString[30];
+};
+
 #pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
@@ -96,4 +121,6 @@ public:
 	REGISTER_PACKET(EchoStringPacket)\
 	REGISTER_PACKET(CallTestProcedurePacket)\
 	REGISTER_PACKET(CallSelectTest2ProcedurePacket)\
+	REGISTER_PACKET(CallTestProcedurePacketReply)\
+	REGISTER_PACKET(CallSelectTest2ProcedurePacketReply)\
 }
