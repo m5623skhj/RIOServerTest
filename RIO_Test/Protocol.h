@@ -98,6 +98,9 @@ public:
 #define REGISTER_PACKET(PacketType){\
 	PacketManager::GetInst().RegisterPacket<PacketType>();\
 }
+
+#pragma region PacketHandler
+
 #define REGISTER_HANDLER(PacketType)\
 	PacketManager::GetInst().RegisterPacketHandler<PacketType>();
 
@@ -115,6 +118,26 @@ public:
 	DECLARE_HANDLE_PACKET(EchoStringPacket)\
 	DECLARE_HANDLE_PACKET(CallTestProcedurePacket)\
 	DECLARE_HANDLE_PACKET(CallSelectTest2ProcedurePacket)\
+
+#pragma endregion PacketHandler
+
+#pragma region ForDB
+
+#define REGISTER_DB_REPLY_HANDLER(PacketType)\
+	RegisterPacketHandler<PacketType>();
+
+#define DECLARE_DB_REPLY_HANDLER(PacketType)\
+	static bool AssemblePacket(PacketType& packet, OUT CSerializationBuf& recvPacket);\
+
+#define REGISTER_ALL_DB_REPLY_HANDLER()\
+	REGISTER_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
+	REGISTER_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
+
+#define DECLARE_ALL_DB_REPLY_HANDLER()\
+	DECLARE_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
+	DECLARE_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
+
+#pragma endregion ForDB
 
 #define REGISTER_PACKET_LIST(){\
 	REGISTER_PACKET(TestStringPacket)\

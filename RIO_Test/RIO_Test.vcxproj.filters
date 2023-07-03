@@ -92,7 +92,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\Log.cpp">
       <Filter>Include</Filter>
     </ClCompile>
-    <ClCompile Include="ProcedureHelper.cpp">
+    <ClCompile Include="ProcedureReplyHandler.cpp">
       <Filter>DBClient</Filter>
     </ClCompile>
   </ItemGroup>
@@ -139,7 +139,7 @@
     <ClInclude Include="..\..\DBConnector\DBConnector\StoredProcedure.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="ProcedureHelper.h">
+    <ClInclude Include="ProcedureReplyHandler.h">
       <Filter>DBClient</Filter>
     </ClInclude>
   </ItemGroup>
