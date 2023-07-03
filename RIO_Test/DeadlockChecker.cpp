@@ -22,12 +22,14 @@ DeadlockChecker& DeadlockChecker::GetInstance()
 bool DeadlockChecker::RegisterCheckThread(const std::thread::id& threadId, const UpdateCountGetter& countGetterFunctor)
 {
 	{
+#if USE_DEDALOCK_CHECKER
 		std::lock_guard<std::mutex> guardLock(lock);
 		auto iter = checkerMap.insert({ threadId, countGetterFunctor });
 		if (iter.second == false)
 		{
 			return false;
 		}
+#endif
 	}
 
 	return true;
@@ -35,12 +37,15 @@ bool DeadlockChecker::RegisterCheckThread(const std::thread::id& threadId, const
 
 void DeadlockChecker::DeregisteredCheckThread(const std::thread::id& threadId)
 {
+#if USE_DEDALOCK_CHECKER
 	std::lock_guard<std::mutex> guardLock(lock);
 	checkerMap.erase(threadId);
+#endif
 }
 
 void DeadlockChecker::UpdateThreadState()
 {
+#if USE_DEDALOCK_CHECKER
 	while (true)
 	{
 		Sleep(checkSleepTime);
@@ -61,5 +66,8 @@ void DeadlockChecker::UpdateThreadState()
 			}
 		}
 	}
+#else
+	return;
+#endif
 }
 
