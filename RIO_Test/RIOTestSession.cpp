@@ -112,7 +112,7 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 		return;
 	}
 
-	if (packet->GetPacketSize() <= recvPacket.GetUseSize())
+	if (packet->GetPacketSize() < recvPacket.GetUseSize())
 	{
 		return;
 	}
