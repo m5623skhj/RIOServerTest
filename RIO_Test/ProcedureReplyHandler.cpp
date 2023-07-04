@@ -27,7 +27,8 @@ bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& 
 	}
 
 	recvPacket >> packet.no;
-	recvPacket.ReadBuffer((char*)packet.testString, sizeof(packet.testString));
+	int getLeftSize = recvPacket.GetUseSize();
+	recvPacket.ReadBuffer((char*)packet.testString, getLeftSize);
 
 	return true;
 }
