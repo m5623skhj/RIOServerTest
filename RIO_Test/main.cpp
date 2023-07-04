@@ -10,13 +10,12 @@ int main()
 {
 	{
 		PacketManager::GetInst().Init();
+		REGISTER_PACKET_LIST();
 	}
 	DBClient::GetInstance().Start(L"OptionFile/DBClientOptionFile.txt");
 	
 	RIOTestServer& server = RIOTestServer::GetInst();
 	server.StartServer(L"OptionFile/ServerOption.txt");
-
-	REGISTER_PACKET_LIST();
 
 	auto& deadlockChecker = DeadlockChecker::GetInstance();
 
