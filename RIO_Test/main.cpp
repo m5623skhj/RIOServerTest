@@ -10,7 +10,6 @@ int main()
 {
 	{
 		PacketManager::GetInst().Init();
-		REGISTER_PACKET_LIST();
 	}
 	DBClient::GetInstance().Start(L"OptionFile/DBClientOptionFile.txt");
 	

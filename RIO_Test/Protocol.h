@@ -96,13 +96,13 @@ public:
 #pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
-	PacketManager::GetInst().RegisterPacket<PacketType>();\
+	RegisterPacket<PacketType>();\
 }
 
 #pragma region PacketHandler
 
 #define REGISTER_HANDLER(PacketType)\
-	PacketManager::GetInst().RegisterPacketHandler<PacketType>();
+	RegisterPacketHandler<PacketType>();
 
 #define DECLARE_HANDLE_PACKET(PacketType)\
 	static bool HandlePacket(RIOTestSession& session, PacketType& packet);\
