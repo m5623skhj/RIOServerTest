@@ -16,8 +16,6 @@ int main()
 	RIOTestServer& server = RIOTestServer::GetInst();
 	server.StartServer(L"OptionFile/ServerOption.txt");
 
-	auto& deadlockChecker = DeadlockChecker::GetInstance();
-
 	while (true)
 	{
 		Sleep(1000);
