@@ -529,6 +529,11 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 	InterlockedDecrement(&numOfSessionInWorkerThread[releaseSession.threadId]);
 	InterlockedDecrement(&sessionCount);
 
+	{
+		SCOPE_WRITE_LOCK(sessionMapLock);
+		sessionMap.erase(releaseSession.sessionId);
+	}
+
 	return true;
 }
 
