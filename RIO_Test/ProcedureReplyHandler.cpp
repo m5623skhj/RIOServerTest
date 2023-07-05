@@ -16,6 +16,9 @@ void ProcedureReplyHandler::Initialize()
 
 bool ProcedureReplyHandler::AssemblePacket(CallTestProcedurePacketReply& packet, OUT CSerializationBuf& recvPacket)
 {
+	UNREFERENCED_PARAMETER(packet);
+	UNREFERENCED_PARAMETER(recvPacket);
+
 	return true;
 }
 
