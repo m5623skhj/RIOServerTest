@@ -3,7 +3,7 @@
 #include <thread>
 
 DeadlockChecker::DeadlockChecker()
-	: checkerThread([this]() { UpdateThreadState(); })
+	: checkerThread([this]() { CheckDeadlockThread(); })
 {
 
 }
@@ -43,7 +43,7 @@ void DeadlockChecker::DeregisteredCheckThread(const std::thread::id& threadId)
 #endif
 }
 
-void DeadlockChecker::UpdateThreadState()
+void DeadlockChecker::CheckDeadlockThread()
 {
 #if USE_DEDALOCK_CHECKER
 	while (true)

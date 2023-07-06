@@ -25,7 +25,7 @@ public:
 	void DeregisteredCheckThread(const std::thread::id& threadId);
 
 private:
-	void UpdateThreadState();
+	void CheckDeadlockThread();
 	
 private:
 	std::thread checkerThread;
