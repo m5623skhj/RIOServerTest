@@ -39,10 +39,11 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
 3. 주요 클래스
 
 * RIOTestServer
+  * 세션의 연결과 IO 처리를 관리하는 클래스
   * Accept 스레드 : 유저들의 연결을 처리하며, 현재 스레드들 중 가장 세션의 수가 적은 스레드에 할당
   * Worker 스레드 :
-   * 지정된 주기마다 스레드가 깨어나 현재 완료된 IO가 있는지 확인 및 해당하는 처리 수행
-   * 할당된 세션이 하나의 Worker 스레드에 종속적이게 하여, RIO 관련 처리는 락을 사용하지 않고 수행
+  * 지정된 주기마다 스레드가 깨어나 현재 완료된 IO가 있는지 확인 및 해당하는 처리 수행
+  * 할당된 세션이 하나의 Worker 스레드에 종속적이게 하여, RIO 관련 처리는 락을 사용하지 않고 수행
  
 * RIOTestSession
   * 하나의 클라이언트에 해당하는 클래스
