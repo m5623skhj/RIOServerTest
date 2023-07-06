@@ -10,7 +10,7 @@
 
 1. 개요
 
-RIO를 사용해보고자 만든 예제입니다.
+RIO를 사용해보고자 만든 예제 서버입니다.
 
 [DBServer](https://github.com/m5623skhj/DBConnector)와 연동하여야만 서버가 올라가며, DBServer가 필요 없을 시, main.cpp에서 DBClient.Start()를 제거해주세요.
 
