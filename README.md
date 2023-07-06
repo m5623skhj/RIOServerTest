@@ -5,6 +5,8 @@
 2. 패킷 추가 방법
 3. 주요 클래스
 
+---
+
 1. 개요
 RIO를 사용해보고자 만든 예제입니다.
 [DBServer](https://github.com/m5623skhj/DBConnector)와 연동하여야만 서버가 올라가며, DBServer가 필요 없을 시, main.cpp에서 DBClient.Start()를 제거해주세요.
@@ -52,4 +54,5 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
 참고 자료
 
 https://github.com/zeliard/RIOTcpServer
+
 https://gist.github.com/ujentus/5997058#file-rioserver_sm9-cpp
