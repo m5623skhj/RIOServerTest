@@ -54,6 +54,10 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
   * 패킷의 정보를 저장하고 있는 클래스
   * 패킷 핸들러와 패킷 정보를 가지고 있으며, 이 정보들로 송신 받은 NetBuffer를 유저가 정의한 IPacket 상속 객체로 변환하고, 알맞은 PacketHandler를 호출할 수 있도록 함
 
+* Broadcaster
+  * 현재 모든 세션에 대해서 브로드 캐스트를 수행해주는 클래스
+  * 세션이 새로 등록될 때, 자동으로 브로드 캐스트 대상으로 등록되며, 세션이 제거되면 자동으로 대상에서 제외됨
+
 * DeadlockChecker
   * 등록된 스레드들에 대해 데드락을 감지하고 정의한 시간 동안 해당 스레드가 갱신되지 않을 시, 강제로 프로그램을 종료시킨다.
   * 현재 Worker들만을 대상으로 하고 있으며, Accepter의 경우, accept()를 blocking 상태로 호출하여 관찰 대상으로 하지 않음
