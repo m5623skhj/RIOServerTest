@@ -64,6 +64,7 @@ public:
 	void SendPacketAndDisconnect(IPacket& packet);
 	void Disconnect();
 
+private:
 	void OnRecvPacket(NetBuffer& packet);
 
 private:
