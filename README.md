@@ -48,7 +48,8 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
  
 * RIOTestSession
   * 하나의 클라이언트에 해당하는 클래스
-  * 내부적으로 현재 진행되고 있는 IO로 관리되고 있음
+  * 내부적으로 현재 진행되고 있는 IO Count로 관리되고 있음
+  * IO Count가 0이 되면 연결이 끊긴 것으로 간주하고 세션을 제거함
 
 * PacketManager
   * 패킷의 정보를 저장하고 있는 클래스
