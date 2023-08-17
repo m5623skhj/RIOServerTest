@@ -73,6 +73,7 @@ void RIOTestSession::SendPacket(NetBuffer& packet)
 
 void RIOTestSession::SendPacketAndDisconnect(IPacket& packet)
 {
+	sendDisconnect = true;
 	NetBuffer* buffer = NetBuffer::Alloc();
 	if (buffer == nullptr)
 	{
