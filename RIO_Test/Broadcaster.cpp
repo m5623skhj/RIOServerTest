@@ -11,6 +11,7 @@ Broadcaster& Broadcaster::GetInst()
 void Broadcaster::BraodcastToAllSession(IPacket& packet)
 {
 	NetBuffer* buffer = NetBuffer::Alloc();
+	NetBuffer::AddRefCount(buffer);
 	if (buffer == nullptr)
 	{
 		std::cout << "buffer is nullptr" << std::endl;
@@ -19,7 +20,6 @@ void Broadcaster::BraodcastToAllSession(IPacket& packet)
 
 	*buffer << packet.GetPacketId();
 	buffer->WriteBuffer((char*)&packet + 8, packet.GetPacketSize());
-
 	{
 		std::lock_guard<std::mutex> guardLock(sessionSetLock);
 		for (const auto& sessionId : sessionIdSet)
@@ -37,10 +37,12 @@ void Broadcaster::BraodcastToAllSession(IPacket& packet)
 			session->SendPacket(*buffer);
 		}
 	}
+	NetBuffer::Free(buffer);
 }
 
 void Broadcaster::BraodcastToAllSession(NetBuffer& packet)
 {
+	NetBuffer::AddRefCount(&packet);
 	{
 		std::lock_guard<std::mutex> guardLock(sessionSetLock);
 		for (const auto& sessionId : sessionIdSet)
@@ -58,6 +60,7 @@ void Broadcaster::BraodcastToAllSession(NetBuffer& packet)
 			session->SendPacket(packet);
 		}
 	}
+	NetBuffer::Free(&packet);
 }
 
 void Broadcaster::OnSessionEntered(SessionId enteredSessionId)
