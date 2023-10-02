@@ -16,7 +16,7 @@ RIO를 사용한 서버입니다.
 
 [DBServer](https://github.com/m5623skhj/DBConnector)와 연동하여야만 서버가 올라가며, DBServer가 필요 없을 시, main.cpp에서 DBClient.Start()를 제거해주세요.
 
-현재 프로젝트를 그대로 실행시킬 시, 시작 흐릉은 아래와 같은 순서로 진행됩니다.
+현재 프로젝트를 그대로 실행시킬 시, 시작 흐름은 아래와 같은 순서로 진행됩니다.
 
 ![Start RIOTestServer   DBClientpng](https://github.com/m5623skhj/RIOServerTest/assets/42509418/58160c6c-0ebf-470b-9890-7461670c3a9e)
 
@@ -26,7 +26,7 @@ RIO를 사용한 서버입니다.
 
 Protocol.h에 IPacket을 상속 받아서 패킷 클래스를 정의합니다.
 
-이 때, 각 패킷은 SET_PACKET_SIZE() 매크로를 반드시 정의해야합니다.
+이 때, 각 패킷은 GET_PACKET_SIZE(), GET_PACKET_ID() 매크로를 반드시 정의해야합니다.
 
 이후 REGISTER_ALL_HANDLER()와 DECLARE_ALL_HANDLER(), REGISTER_PACKET_LIST()에 생성한 패킷을 등록하고,
 
