@@ -8,6 +8,7 @@
 using PacketId = unsigned int;
 
 #define SET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
+#define GET_PACKET_ID(packetId) virtual PacketId GetPacketId() const override { return static_cast<PacketId>(packetId); }
 
 #pragma pack(push, 1)
 class IPacket
@@ -25,7 +26,7 @@ class TestStringPacket : public IPacket
 public:
 	TestStringPacket() = default;
 	~TestStringPacket() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::TEST_STRING_PACKET); }
+	GET_PACKET_ID(PACKET_ID::TEST_STRING_PACKET);
 	SET_PACKET_SIZE();
 
 public:
@@ -37,7 +38,7 @@ class EchoStringPacket : public IPacket
 public:
 	EchoStringPacket() = default;
 	~EchoStringPacket() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::ECHO_STRING_PACEKT); }
+	GET_PACKET_ID(PACKET_ID::ECHO_STRING_PACEKT);
 	SET_PACKET_SIZE();
 
 public:
@@ -49,7 +50,7 @@ class CallTestProcedurePacket : public IPacket
 public:
 	CallTestProcedurePacket() = default;
 	~CallTestProcedurePacket() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_TEST_PROCEDURE_PACKET); }
+	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET);
 	SET_PACKET_SIZE();
 
 public:
@@ -62,7 +63,7 @@ class CallSelectTest2ProcedurePacket : public IPacket
 public:
 	CallSelectTest2ProcedurePacket() = default;
 	~CallSelectTest2ProcedurePacket() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET); }
+	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
 	SET_PACKET_SIZE();
 
 public:
@@ -74,7 +75,7 @@ class CallTestProcedurePacketReply : public IPacket
 public:
 	CallTestProcedurePacketReply() = default;
 	~CallTestProcedurePacketReply() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY); }
+	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
 	SET_PACKET_SIZE();
 
 public:
@@ -85,7 +86,7 @@ class CallSelectTest2ProcedurePacketReply : public IPacket
 public:
 	CallSelectTest2ProcedurePacketReply() = default;
 	~CallSelectTest2ProcedurePacketReply() = default;
-	virtual PacketId GetPacketId() const override { return static_cast<PacketId>(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY); }
+	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
 	SET_PACKET_SIZE();
 
 public:
