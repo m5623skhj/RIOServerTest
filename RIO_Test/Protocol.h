@@ -7,7 +7,7 @@
 
 using PacketId = unsigned int;
 
-#define SET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
+#define GET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
 #define GET_PACKET_ID(packetId) virtual PacketId GetPacketId() const override { return static_cast<PacketId>(packetId); }
 
 #pragma pack(push, 1)
@@ -27,7 +27,7 @@ public:
 	TestStringPacket() = default;
 	~TestStringPacket() = default;
 	GET_PACKET_ID(PACKET_ID::TEST_STRING_PACKET);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 	char testString[20];
@@ -39,7 +39,7 @@ public:
 	EchoStringPacket() = default;
 	~EchoStringPacket() = default;
 	GET_PACKET_ID(PACKET_ID::ECHO_STRING_PACEKT);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 	char echoString[30];
@@ -51,7 +51,7 @@ public:
 	CallTestProcedurePacket() = default;
 	~CallTestProcedurePacket() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 	int id3 = 0;
@@ -64,7 +64,7 @@ public:
 	CallSelectTest2ProcedurePacket() = default;
 	~CallSelectTest2ProcedurePacket() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 	long long id = 0;
@@ -76,7 +76,7 @@ public:
 	CallTestProcedurePacketReply() = default;
 	~CallTestProcedurePacketReply() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 };
@@ -87,7 +87,7 @@ public:
 	CallSelectTest2ProcedurePacketReply() = default;
 	~CallSelectTest2ProcedurePacketReply() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
-	SET_PACKET_SIZE();
+	GET_PACKET_SIZE();
 
 public:
 	int no = 0;
