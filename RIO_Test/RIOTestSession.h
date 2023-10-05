@@ -91,7 +91,6 @@ private:
 
 	RecvItem recvItem;
 	SendItem sendItem;
-	OVERLAPPED postQueueOverlapped;
 
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
 	std::mutex rioRQLock;

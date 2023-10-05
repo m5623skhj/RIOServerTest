@@ -26,8 +26,6 @@ bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunction
 	u_long arg = 1;
 	ioctlsocket(socket, FIONBIO, &arg);
 
-	ZeroMemory(&postQueueOverlapped, sizeof(postQueueOverlapped));
-
 	recvItem.recvRingBuffer.InitPointer();
 
 	recvItem.recvBufferId = rioFunctionTable.RIORegisterBuffer(recvItem.recvRingBuffer.GetBufferPtr(), DEFAULT_RINGBUFFER_MAX);
