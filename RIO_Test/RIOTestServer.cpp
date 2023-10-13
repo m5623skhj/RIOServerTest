@@ -534,6 +534,9 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 		sessionMap.erase(releaseSession.sessionId);
 	}
 
+	SCOPE_MUTEX(releaseSession.rioRQLock);
+	releaseSession.OnSessionReleased(rioFunctionTable);
+
 	return true;
 }
 
