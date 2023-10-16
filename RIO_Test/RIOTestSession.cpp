@@ -91,7 +91,7 @@ void RIOTestSession::SendPacketAndDisconnect(NetBuffer& packet)
 
 void RIOTestSession::Disconnect()
 {
-
+	RIOTestServer::GetInst().Disconnect(sessionId);
 }
 
 void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
