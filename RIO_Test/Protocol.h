@@ -94,6 +94,20 @@ public:
 	WCHAR testString[30];
 };
 
+class Ping : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::PING);
+	GET_PACKET_SIZE();
+};
+
+class Pong : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::PONG);
+	GET_PACKET_SIZE();
+};
+
 #pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
@@ -113,12 +127,14 @@ public:
 	REGISTER_HANDLER(EchoStringPacket)\
 	REGISTER_HANDLER(CallTestProcedurePacket)\
 	REGISTER_HANDLER(CallSelectTest2ProcedurePacket)\
+	REGISTER_HANDLER(Ping)\
 	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
 	DECLARE_HANDLE_PACKET(EchoStringPacket)\
 	DECLARE_HANDLE_PACKET(CallTestProcedurePacket)\
 	DECLARE_HANDLE_PACKET(CallSelectTest2ProcedurePacket)\
+	DECLARE_HANDLE_PACKET(Ping)\
 
 #pragma endregion PacketHandler
 

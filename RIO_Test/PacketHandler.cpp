@@ -51,3 +51,11 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2Procedu
 
 	return true;
 }
+
+bool PacketManager::HandlePacket(RIOTestSession& session, Ping& packet)
+{
+	Ping ping;
+	session.SendPacket(ping);
+
+	return true;
+}
