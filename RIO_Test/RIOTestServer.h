@@ -120,7 +120,7 @@ public:
 
 private:
 	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket, BYTE threadId);
-	bool MakeNewSession(SOCKET enteredClientSocket);
+	bool MakeNewSession(SOCKET enteredClientSocket, const std::wstring_view& enteredClientIP);
 	bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
 	void IOCountDecrement(RIOTestSession& session);

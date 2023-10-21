@@ -247,8 +247,7 @@ void RIOTestServer::Accepter()
 	SOCKADDR_IN enteredClientAddr;
 	int addrSize = sizeof(enteredClientAddr);
 	DWORD error = 0;
-	WCHAR enteredIP[IP_SIZE];
-	UNREFERENCED_PARAMETER(enteredIP);
+	WCHAR enteredIP[INET_ADDRSTRLEN];
 
 	while (true)
 	{
@@ -267,9 +266,13 @@ void RIOTestServer::Accepter()
 			}
 		}
 
-		// 여기에서 해당 IP에 대한 처리 등을 하면 될 듯
+		if (InetNtop(AF_INET, &(enteredClientAddr.sin_addr), enteredIP, INET_ADDRSTRLEN) == NULL)
+		{
+			error = GetLastError();
+			PrintError("Accepter() / InetNtop() return NULL", error);
+		}
 
-		if (MakeNewSession(enteredClientSocket) == false)
+		if (MakeNewSession(enteredClientSocket, enteredIP) == false)
 		{
 			closesocket(enteredClientSocket);
 			continue;
@@ -480,7 +483,7 @@ std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClien
 }
 
 
-bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
+bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, const std::wstring_view& enteredClientIP)
 {
 	BYTE threadId = GetMinimumSessionThreadId();
 	auto newSession = GetNewSession(enteredClientSocket, threadId);
@@ -514,7 +517,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket)
 		IOCountDecrement(*newSession);
 
 		Broadcaster::GetInst().OnSessionEntered(newSession->sessionId);
-		newSession->OnClientEntered();
+		newSession->OnClientEntered(enteredClientIP);
 
 		return true;
 	} while (false);
