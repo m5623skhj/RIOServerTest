@@ -469,7 +469,6 @@ void RIOTestServer::Disconnect(SessionId sessionId)
 	}
 
 	shutdown(session->second->socket, SD_BOTH);
-	IOCountDecrement(*session->second);
 }
 
 std::shared_ptr<RIOTestSession> RIOTestServer::GetNewSession(SOCKET enteredClientSocket, BYTE threadId)
