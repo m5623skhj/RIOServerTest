@@ -284,13 +284,9 @@ void RIOTestServer::Accepter()
 
 void RIOTestServer::Worker(BYTE inThreadId)
 {
-	std::shared_ptr<RIOTestSession> session;
-
 	RIORESULT rioResults[MAX_RIO_RESULT];
 	rioCQList[inThreadId] = rioFunctionTable.RIOCreateCompletionQueue(maxClientCount / numOfWorkerThread * MAX_SEND_BUFFER_SIZE, nullptr);
-
 	ULONG numOfResults = 0;
-
 	workerOnList[inThreadId] = true;
 
 	UINT64 updatedTick = GetTickCount64();
