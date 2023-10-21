@@ -93,7 +93,6 @@ private:
 	SendItem sendItem;
 
 	RIO_RQ rioRQ = RIO_INVALID_RQ;
-	std::mutex rioRQLock;
 
 	ULONG rioRecvOffset = 0;
 #pragma endregion IO

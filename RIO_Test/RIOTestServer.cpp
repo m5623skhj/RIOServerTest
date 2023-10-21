@@ -533,7 +533,6 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 		sessionMap.erase(releaseSession.sessionId);
 	}
 
-	SCOPE_MUTEX(releaseSession.rioRQLock);
 	releaseSession.OnSessionReleased(rioFunctionTable);
 
 	return true;
@@ -610,7 +609,6 @@ IO_POST_ERROR RIOTestServer::RecvPost(OUT RIOTestSession& session)
 	context->Length = restSize;
 	context->Offset = session.rioRecvOffset % DEFAULT_RINGBUFFER_MAX;
 	{
-		SCOPE_MUTEX(session.rioRQLock);
 		if (rioFunctionTable.RIOReceive(session.rioRQ, (PRIO_BUF)context, 1, NULL, context) == FALSE)
 		{
 			PrintError("RIOReceive", GetLastError());
@@ -652,7 +650,6 @@ IO_POST_ERROR RIOTestServer::SendPost(OUT RIOTestSession& session)
 
 		InterlockedIncrement(&session.ioCount);
 		{
-			SCOPE_MUTEX(session.rioRQLock);
 			if (rioFunctionTable.RIOSend(session.rioRQ, (PRIO_BUF)context, contextCount, NULL, context) == FALSE)
 			{
 				PrintError("RIOSend", GetLastError());
