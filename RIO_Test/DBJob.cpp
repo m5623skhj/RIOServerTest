@@ -4,7 +4,7 @@
 
 ERROR_CODE DBJob::Execute()
 {
-	// Send to DB?
+	// Send to DBServer
 
 	return ERROR_CODE::SUCCESS;
 }
@@ -22,10 +22,14 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
+	// Send to DBServer start batcheJob
+
 	for (auto& job : jobList)
 	{
 
 	}
+
+	// Send to DBServer end batchjob
 
 	return ERROR_CODE::SUCCESS;
 }
