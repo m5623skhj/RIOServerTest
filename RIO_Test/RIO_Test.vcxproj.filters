@@ -36,6 +36,9 @@
     <Filter Include="DBClient">
       <UniqueIdentifier>{6cada8fa-1815-46c5-8be0-f34a374e7014}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DBJob">
+      <UniqueIdentifier>{6739a7af-e656-48b1-ac8d-29b244fda6f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_main.cpp">
@@ -95,6 +98,9 @@
     <ClCompile Include="ProcedureReplyHandler.cpp">
       <Filter>DBClient</Filter>
     </ClCompile>
+    <ClCompile Include="DBJob.cpp">
+      <Filter>DBJob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -141,6 +147,9 @@
     </ClInclude>
     <ClInclude Include="ProcedureReplyHandler.h">
       <Filter>DBClient</Filter>
+    </ClInclude>
+    <ClInclude Include="DBJob.h">
+      <Filter>DBJob</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -41,3 +41,9 @@ enum class PACKET_ID : unsigned int
 	, PING
 	, PONG
 };
+
+enum class ERROR_CODE : unsigned short
+{
+	SUCCESS = 0
+	, BATCHED_DB_JOB_SIZE_OVERFLOWED
+};

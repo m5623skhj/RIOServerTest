@@ -7,4 +7,6 @@
 #define MAX_RIO_RESULT 256
 #define MAX_SEND_BUFFER_SIZE 16384
 
+#define MAXIMUM_BATCHED_DB_JOB_SIZE 16
+
 using SessionId = UINT64;
