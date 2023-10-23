@@ -13,6 +13,9 @@ public:
 	virtual void OnCommit() {}
 	virtual void OnRollback() {}
 
+public:
+	ERROR_CODE Execute();
+
 private:
 
 };
