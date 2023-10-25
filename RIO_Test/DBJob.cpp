@@ -33,3 +33,19 @@ ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 
 	return ERROR_CODE::SUCCESS;
 }
+
+void BatchedDBJob::OnCommit()
+{
+	for (auto& job : jobList)
+	{
+		job->OnCommit();
+	}
+}
+
+void BatchedDBJob::OnRollback()
+{
+	for (auto& job : jobList)
+	{
+		job->OnRollback();
+	}
+}
