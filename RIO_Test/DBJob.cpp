@@ -1,14 +1,7 @@
 #include "PreCompile.h"
 #include "DBJob.h"
-#include "DefineType.h"
 
-ERROR_CODE DBJob::Execute()
-{
-	// Send to DBServer
-
-	return ERROR_CODE::SUCCESS;
-}
-
+#pragma region DBJob
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 {
 	if (jobList.size() >= MAXIMUM_BATCHED_DB_JOB_SIZE)
@@ -49,3 +42,32 @@ void BatchedDBJob::OnRollback()
 		job->OnRollback();
 	}
 }
+#pragma endregion DBJob
+
+#pragma region DBJobManager
+DBJobManager& DBJobManager::GetInst()
+{
+	static DBJobManager instance;
+	return instance;
+}
+
+void DBJobManager::RegisterDBJob(std::shared_ptr<BatchedDBJob> job)
+{
+	std::lock_guard<std::mutex> guardLock(lock);
+	DBJobKey key = jobKey.fetch_add(1);
+
+	jobMap.insert({ key, job });
+}
+
+std::shared_ptr<BatchedDBJob> DBJobManager::GetRegistedDBJob(DBJobKey jobKey)
+{
+	std::lock_guard<std::mutex> guardLock(lock);
+	auto iter = jobMap.find(jobKey);
+	if (iter == jobMap.end())
+	{
+		return nullptr;
+	}
+
+	return iter->second;
+}
+#pragma endregion DBJobManager

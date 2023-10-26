@@ -2,6 +2,9 @@
 #include <list>
 #include <memory>
 #include "EnumType.h"
+#include "DefineType.h"
+#include <map>
+#include <mutex>
 
 class DBJob
 {
@@ -10,11 +13,8 @@ public:
 	virtual ~DBJob() = default;
 
 public:
-	virtual void OnCommit() {}
-	virtual void OnRollback() {}
-
-public:
-	ERROR_CODE Execute();
+	virtual void OnCommit() = 0;
+	virtual void OnRollback() = 0;
 
 private:
 	// session을 가지고 있는게 맞는가?
@@ -38,7 +38,26 @@ private:
 	std::list<std::shared_ptr<DBJob>> jobList;
 };
 
-// job이나, batched job을 보내는 것 까지는 좋은데,
-// 이후에 어떻게 받아야 하지?
-// 어딘가에 보관하고 있다가 DBServer에서 Job이 완료되었다고 신호가 오면 꺼내다 써야할까?
-// ex) map<jobKey, job? batchedJob?> jobMap
+class DBJobManager
+{
+private:
+	DBJobManager() = default;
+	~DBJobManager() = default;
+
+	DBJobManager(const DBJobManager&) = delete;
+	DBJobManager& operator=(const DBJobManager&) = delete;
+
+public:
+	static DBJobManager& GetInst();
+
+public:
+	void RegisterDBJob(std::shared_ptr<BatchedDBJob> job);
+	std::shared_ptr<BatchedDBJob> GetRegistedDBJob(DBJobKey jobKey);
+
+private:
+	std::atomic<DBJobKey> jobKey;
+
+	// 관리의 용이성을 위해서 일반 DBJob도 BatchedDBJob에 넣어서 보냄
+	std::map<DBJobKey, std::shared_ptr<BatchedDBJob>> jobMap;
+	std::mutex lock;
+};

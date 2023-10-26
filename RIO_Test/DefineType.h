@@ -10,3 +10,4 @@
 #define MAXIMUM_BATCHED_DB_JOB_SIZE 16
 
 using SessionId = UINT64;
+using DBJobKey = UINT64;
