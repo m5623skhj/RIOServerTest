@@ -38,6 +38,20 @@ private:
 	std::list<std::shared_ptr<DBJob>> jobList;
 };
 
+class GlobalDBJob : public DBJob
+{
+public:
+	GlobalDBJob() = default;
+	virtual ~GlobalDBJob() = default;
+};
+
+class GlobalBatchedDBJob : public BatchedDBJob
+{
+public:
+	GlobalBatchedDBJob() = default;
+	virtual ~GlobalBatchedDBJob() = default;
+};
+
 class DBJobManager
 {
 private:
