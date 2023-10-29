@@ -59,8 +59,15 @@ private:
 	BYTE GetMinimumSessionThreadId() const;
 
 private:
+	float GetSessionRationInThisThread(BYTE threadId);
+	bool CheckRebalancingSession(BYTE threadId);
+	void RebalanceSessionToThread();
+
+private:
 	std::thread accepterThread;
 	std::vector<std::thread> workerThreads;
+	
+	const float sessionRatioInThread = 50.0f;
 #pragma endregion thread
 
 #pragma region rio

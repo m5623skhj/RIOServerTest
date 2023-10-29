@@ -450,6 +450,29 @@ BYTE RIOTestServer::GetMinimumSessionThreadId() const
 	return targetThreadId;
 }
 
+float RIOTestServer::GetSessionRationInThisThread(BYTE threadId)
+{
+	UINT count = 0;
+	UINT thisSessionCount = numOfSessionInWorkerThread[threadId];
+
+	for (const auto sessionCount : numOfSessionInWorkerThread)
+	{
+		count += sessionCount;
+	}
+
+	return count / thisSessionCount;
+}
+
+bool RIOTestServer::CheckRebalancingSession(BYTE threadId)
+{
+	return GetSessionRationInThisThread() > sessionRatioInThread;
+}
+
+void RIOTestServer::RebalanceSessionToThread()
+{
+
+}
+
 UINT RIOTestServer::GetSessionCount() const
 {
 	return sessionCount;
