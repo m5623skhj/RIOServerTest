@@ -460,12 +460,12 @@ float RIOTestServer::GetSessionRationInThisThread(BYTE threadId)
 		count += sessionCount;
 	}
 
-	return count / thisSessionCount;
+	return static_cast<float>(count / thisSessionCount);
 }
 
 bool RIOTestServer::CheckRebalancingSession(BYTE threadId)
 {
-	return GetSessionRationInThisThread() > sessionRatioInThread;
+	return GetSessionRationInThisThread(threadId) > sessionRatioInThread;
 }
 
 void RIOTestServer::RebalanceSessionToThread()
@@ -557,6 +557,7 @@ bool RIOTestServer::ReleaseSession(OUT RIOTestSession& releaseSession)
 	}
 
 	releaseSession.OnSessionReleased(rioFunctionTable);
+	releaseSession.socket = INVALID_SOCKET;
 
 	return true;
 }
