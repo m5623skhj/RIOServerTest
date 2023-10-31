@@ -40,6 +40,8 @@ enum class PACKET_ID : unsigned int
 	, CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY
 	, PING
 	, PONG
+	, REQUEST_FILE_STREAM
+	, RESPONSE_FILE_STREAM
 };
 
 enum class ERROR_CODE : unsigned short

@@ -59,3 +59,10 @@ bool PacketManager::HandlePacket(RIOTestSession& session, Ping& packet)
 
 	return true;
 }
+
+bool PacketManager::HandlePacket(RIOTestSession& session, RequestFileStream& packet)
+{
+	UNREFERENCED_PARAMETER(packet);
+
+	return true;
+}

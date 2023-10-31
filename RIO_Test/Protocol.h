@@ -108,6 +108,20 @@ public:
 	GET_PACKET_SIZE();
 };
 
+class RequestFileStream : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::REQUEST_FILE_STREAM);
+	GET_PACKET_SIZE();
+};
+
+class ResponseFileStream : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::RESPONSE_FILE_STREAM);
+	GET_PACKET_SIZE();
+};
+
 #pragma pack(pop)
 
 #define REGISTER_PACKET(PacketType){\
@@ -128,6 +142,7 @@ public:
 	REGISTER_HANDLER(CallTestProcedurePacket)\
 	REGISTER_HANDLER(CallSelectTest2ProcedurePacket)\
 	REGISTER_HANDLER(Ping)\
+	REGISTER_HANDLER(RequestFileStream)\
 	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
@@ -135,6 +150,7 @@ public:
 	DECLARE_HANDLE_PACKET(CallTestProcedurePacket)\
 	DECLARE_HANDLE_PACKET(CallSelectTest2ProcedurePacket)\
 	DECLARE_HANDLE_PACKET(Ping)\
+	DECLARE_HANDLE_PACKET(RequestFileStream)\
 
 #pragma endregion PacketHandler
 
