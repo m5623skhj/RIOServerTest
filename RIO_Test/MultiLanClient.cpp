@@ -489,7 +489,7 @@ char CMultiLanClient::RecvPost(Session& session)
 
 UINT64 CMultiLanClient::GetChannelId()
 {
-	return m_channelSelector % m_byNumOfWorkerThread;
+	return ++m_channelSelector % m_byNumOfWorkerThread;
 }
 
 bool CMultiLanClient::SendPacket(CSerializationBuf *pSerializeBuf)

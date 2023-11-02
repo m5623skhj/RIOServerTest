@@ -1,7 +1,20 @@
 #include "PreCompile.h"
 #include "DBJob.h"
+#include "DBClient.h"
 
 #pragma region DBJob
+DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer)
+{
+	if (spBuffer == nullptr || inOwner == nullptr)
+	{
+		printf("Invalid sp buffer");
+		g_Dump.Crash();
+	}
+
+	owner = inOwner;
+	jobSPBuffer = spBuffer;
+}
+
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 {
 	if (jobList.size() >= MAXIMUM_BATCHED_DB_JOB_SIZE)

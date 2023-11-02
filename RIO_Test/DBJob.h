@@ -5,11 +5,15 @@
 #include "DefineType.h"
 #include <map>
 #include <mutex>
+#include "LanServerSerializeBuf.h"
+
+class RIOTestSession;
 
 class DBJob
 {
 public:
-	DBJob() = default;
+	DBJob() = delete;
+	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer);
 	virtual ~DBJob() = default;
 
 public:
@@ -17,8 +21,10 @@ public:
 	virtual void OnRollback() = 0;
 
 private:
-	// session을 가지고 있는게 맞는가?
-	// 아니면 DBJob을 상속 받은 곳에서 session을 따로 갖도록 하는 것이 맞는가?
+	std::shared_ptr<RIOTestSession> owner = nullptr;
+
+private:
+	CSerializationBuf* jobSPBuffer = nullptr;
 };
 
 class BatchedDBJob
