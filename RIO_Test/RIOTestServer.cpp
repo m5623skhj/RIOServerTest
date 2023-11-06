@@ -289,21 +289,22 @@ void RIOTestServer::Worker(BYTE inThreadId)
 	ULONG numOfResults = 0;
 	workerOnList[inThreadId] = true;
 
-	UINT64 updatedTick = GetTickCount64();
-	std::function<UINT64()> getUpdatedTickFunc = [&updatedTick]()
+	TickSet tickSet;
+	tickSet.nowTick = GetTickCount64();
+	std::function<UINT64()> getUpdatedTickFunc = [&tickSet]()
 	{
-		return updatedTick;
+		return tickSet.nowTick;
 	};
 
 	DeadlockChecker::GetInstance().RegisterCheckThread(std::this_thread::get_id(), getUpdatedTickFunc);
+	tickSet.nowTick = GetTickCount64();
+	tickSet.beforeTick = tickSet.nowTick;
 
 	while (true)
 	{
 		ZeroMemory(rioResults, sizeof(rioResults));
-		updatedTick = GetTickCount64();
 
 		numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQList[inThreadId], rioResults, MAX_RIO_RESULT);
-
 		for (ULONG i = 0; i < numOfResults; ++i)
 		{
 			IO_POST_ERROR result = IO_POST_ERROR::SUCCESS;
@@ -334,10 +335,23 @@ void RIOTestServer::Worker(BYTE inThreadId)
 			IOCountDecrement(*session);
 		}
 
-		Sleep(33);
+		SleepRemainingFrameTime(tickSet);
 	}
 
 	DeadlockChecker::GetInstance().DeregisteredCheckThread(std::this_thread::get_id());
+}
+
+void RIOTestServer::SleepRemainingFrameTime(OUT TickSet& tickSet)
+{
+	tickSet.nowTick = GetTickCount64();
+	UINT64 deltaTick = tickSet.nowTick - tickSet.beforeTick;
+	
+	if (deltaTick < ONE_FRAME && deltaTick > 0)
+	{
+		Sleep(ONE_FRAME - static_cast<DWORD>(deltaTick));
+	}
+
+	tickSet.beforeTick = tickSet.nowTick;
 }
 
 IO_POST_ERROR RIOTestServer::RecvCompleted(RIOTestSession& session, DWORD transferred)

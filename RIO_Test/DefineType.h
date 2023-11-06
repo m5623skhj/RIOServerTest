@@ -9,5 +9,7 @@
 
 #define MAXIMUM_BATCHED_DB_JOB_SIZE 16
 
+#define ONE_FRAME 33
+
 using SessionId = UINT64;
 using DBJobKey = UINT64;

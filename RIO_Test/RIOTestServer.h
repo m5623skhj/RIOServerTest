@@ -14,6 +14,12 @@ const DWORD SEND_BUFFER_SIZE = 2048;
 const DWORD RIO_PENDING_SEND = 8192;
 constexpr DWORD TOTAL_BUFFER_SIZE = SEND_BUFFER_SIZE * RIO_PENDING_SEND;
 
+struct TickSet
+{
+	UINT64 nowTick = 0;
+	UINT64 beforeTick = 0;
+};
+
 class RIOTestSession;
 
 class RIOTestServer
@@ -40,6 +46,7 @@ public:
 	
 private:
 	void RunThreads();
+	void SleepRemainingFrameTime(OUT TickSet& tickSet);
 
 	ULONG RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults);
 	IOContext* GetIOCompletedContext(RIORESULT& rioResult);
