@@ -335,7 +335,9 @@ void RIOTestServer::Worker(BYTE inThreadId)
 			IOCountDecrement(*session);
 		}
 
+#if USE_SLEEP_FOR_FRAME
 		SleepRemainingFrameTime(tickSet);
+#endif
 	}
 
 	DeadlockChecker::GetInstance().DeregisteredCheckThread(std::this_thread::get_id());
