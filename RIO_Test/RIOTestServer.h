@@ -46,7 +46,7 @@ public:
 	
 private:
 	void RunThreads();
-	void SleepRemainingFrameTime(OUT TickSet& tickSet);
+	FORCEINLINE void SleepRemainingFrameTime(OUT TickSet& tickSet);
 
 	ULONG RIODequeueCompletion(RIO_CQ& rioCQ, RIORESULT* rioResults);
 	IOContext* GetIOCompletedContext(RIORESULT& rioResult);
@@ -60,7 +60,7 @@ private:
 	IO_POST_ERROR RecvCompleted(RIOTestSession& session, DWORD transferred);
 	IO_POST_ERROR SendCompleted(RIOTestSession& session);
 
-	WORD GetPayloadLength(OUT NetBuffer& buffer, int restSize);
+	FORCEINLINE WORD GetPayloadLength(OUT NetBuffer& buffer, int restSize);
 
 private:
 	BYTE GetMinimumSessionThreadId() const;
@@ -127,7 +127,7 @@ private:
 
 #pragma region session
 public:
-	UINT GetSessionCount() const;
+	FORCEINLINE UINT GetSessionCount() const;
 	std::shared_ptr<RIOTestSession> GetSession(SessionId sessionId);
 
 	void Disconnect(SessionId sessionId);
@@ -135,9 +135,9 @@ public:
 private:
 	std::shared_ptr<RIOTestSession> GetNewSession(SOCKET enteredClientSocket, BYTE threadId);
 	bool MakeNewSession(SOCKET enteredClientSocket, const std::wstring_view& enteredClientIP);
-	bool ReleaseSession(OUT RIOTestSession& releaseSession);
+	FORCEINLINE bool ReleaseSession(OUT RIOTestSession& releaseSession);
 
-	void IOCountDecrement(RIOTestSession& session);
+	FORCEINLINE void IOCountDecrement(RIOTestSession& session);
 
 private:
 	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
