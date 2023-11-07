@@ -127,7 +127,7 @@ private:
 
 #pragma region session
 public:
-	FORCEINLINE UINT GetSessionCount() const;
+	UINT GetSessionCount() const;
 	std::shared_ptr<RIOTestSession> GetSession(SessionId sessionId);
 
 	void Disconnect(SessionId sessionId);
