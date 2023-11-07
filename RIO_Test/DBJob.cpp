@@ -1,6 +1,8 @@
 #include "PreCompile.h"
 #include "DBJob.h"
 #include "DBClient.h"
+#include "RIOTestSession.h"
+#include "DBClient.h"
 
 #pragma region DBJob
 DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer)
@@ -13,6 +15,22 @@ DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffe
 
 	owner = inOwner;
 	jobSPBuffer = spBuffer;
+}
+
+DBJob::~DBJob()
+{
+	CSerializationBuf::Free(jobSPBuffer);
+}
+
+bool DBJob::ExecuteJob()
+{
+	if (jobSPBuffer == nullptr)
+	{
+		return false;
+	}
+
+	DBClient::GetInstance().CallProcedure(*jobSPBuffer);
+	return true;
 }
 
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
@@ -28,14 +46,10 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
-	// Send to DBServer start batcheJob
-
 	for (auto& job : jobList)
 	{
-
+		job->ExecuteJob();
 	}
-
-	// Send to DBServer end batchjob
 
 	return ERROR_CODE::SUCCESS;
 }

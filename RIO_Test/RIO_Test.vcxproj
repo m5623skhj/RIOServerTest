@@ -143,6 +143,7 @@
     <ClCompile Include="DBClient.cpp" />
     <ClCompile Include="DBJob.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
+    <ClCompile Include="GlobalUtil.cpp" />
     <ClCompile Include="MultiLanClient.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="PacketManager.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />
     <ClInclude Include="EnumType.h" />
+    <ClInclude Include="GlobalUtil.h" />
     <ClInclude Include="MultiLanClient.h" />
     <ClInclude Include="PacketManager.h" />
     <ClInclude Include="ProcedureReplyHandler.h" />

@@ -14,11 +14,14 @@ class DBJob
 public:
 	DBJob() = delete;
 	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer);
-	virtual ~DBJob() = default;
+	virtual ~DBJob();
 
 public:
 	virtual void OnCommit() = 0;
 	virtual void OnRollback() = 0;
+
+public:
+	bool ExecuteJob();
 
 private:
 	std::shared_ptr<RIOTestSession> owner = nullptr;

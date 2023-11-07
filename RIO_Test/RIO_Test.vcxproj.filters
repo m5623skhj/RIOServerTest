@@ -98,6 +98,9 @@
     <ClCompile Include="DBJob.cpp">
       <Filter>DBJob</Filter>
     </ClCompile>
+    <ClCompile Include="GlobalUtil.cpp">
+      <Filter>etc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -147,6 +150,9 @@
     </ClInclude>
     <ClInclude Include="DBJob.h">
       <Filter>DBJob</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalUtil.h">
+      <Filter>etc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
