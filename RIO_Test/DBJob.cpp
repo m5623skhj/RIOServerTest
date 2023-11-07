@@ -46,9 +46,13 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
+	int batchedNo = 0;
 	for (auto& job : jobList)
 	{
+		job->batchedNo = batchedNo;
 		job->ExecuteJob();
+
+		++batchedNo;
 	}
 
 	return ERROR_CODE::SUCCESS;

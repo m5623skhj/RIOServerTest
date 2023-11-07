@@ -11,6 +11,8 @@ class RIOTestSession;
 
 class DBJob
 {
+	friend BatchedDBJob;
+
 public:
 	DBJob() = delete;
 	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer);
@@ -28,6 +30,7 @@ private:
 
 private:
 	CSerializationBuf* jobSPBuffer = nullptr;
+	unsigned char batchedNo = 0;
 };
 
 class BatchedDBJob
