@@ -41,9 +41,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="_main.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="RIOTestServer.cpp">
       <Filter>RIO</Filter>
     </ClCompile>
