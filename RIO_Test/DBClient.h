@@ -31,6 +31,8 @@ public:
 
 public:
 	void CallProcedure(CSerializationBuf& packet);
+	void SendPacket(CSerializationBuf& packet);
+	void SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId);
 
 private:
 

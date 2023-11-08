@@ -32,7 +32,14 @@ public:
 	bool Start(const WCHAR* szOptionFileName);
 	void Stop();
 
+public:
 	bool SendPacket(CSerializationBuf* pSerializeBuf);
+	bool SendPacket(CSerializationBuf* pSerializeBuf, UINT64 fixedId);
+
+private:
+	bool SendPacketImpl(CSerializationBuf* pSerializeBuf, UINT64 channelId);
+
+public:
 	// 서버에 Connect 가 완료 된 후
 	virtual void OnConnectionComplete() = 0;
 
@@ -95,6 +102,7 @@ private:
 
 private:
 	UINT64 GetChannelId();
+	UINT64 GetFixedChannelId(UINT64 fixedId);
 
 private:
 	BYTE		m_byNumOfWorkerThread;

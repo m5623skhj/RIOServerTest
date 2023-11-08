@@ -492,10 +492,23 @@ UINT64 CMultiLanClient::GetChannelId()
 	return ++m_channelSelector % m_byNumOfWorkerThread;
 }
 
+UINT64 CMultiLanClient::GetFixedChannelId(UINT64 fixedId)
+{
+	return fixedId % m_byNumOfUsingWorkerThread;
+}
+
 bool CMultiLanClient::SendPacket(CSerializationBuf *pSerializeBuf)
 {
-	UINT64 channelId = GetChannelId();
+	return SendPacketImpl(pSerializeBuf, GetChannelId());
+}
 
+bool CMultiLanClient::SendPacket(CSerializationBuf* pSerializeBuf, UINT64 fixedId)
+{
+	return SendPacketImpl(pSerializeBuf, GetFixedChannelId(fixedId));
+}
+
+bool CMultiLanClient::SendPacketImpl(CSerializationBuf* pSerializeBuf, UINT64 channelId)
+{
 	if (pSerializeBuf == NULL)
 	{
 		st_Error Error;
@@ -504,13 +517,13 @@ bool CMultiLanClient::SendPacket(CSerializationBuf *pSerializeBuf)
 		OnError(&Error);
 		return false;
 	}
-	
+
 	WORD PayloadSize = pSerializeBuf->GetUseSize();
 	pSerializeBuf->m_iWriteLast = pSerializeBuf->m_iWrite;
 	pSerializeBuf->m_iWrite = 0;
 	pSerializeBuf->m_iRead = 0;
 	*pSerializeBuf << PayloadSize;
-	
+
 	// session에 대한 락을 좀 생각 해봐야할듯
 	sessionList[channelId]->m_SendIOData.SendQ.Enqueue(pSerializeBuf);
 	SendPost(*sessionList[channelId]);
