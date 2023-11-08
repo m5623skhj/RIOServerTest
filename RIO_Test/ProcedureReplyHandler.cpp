@@ -29,6 +29,10 @@ bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& 
 		return false;
 	}
 
+	// 이거 예제가 잘못된듯 한데?
+	// DBServer 쪽 패킷 프로시저를 확인해보니 여러개의 결과가 들어오는 형식일텐데,
+	// 여기에는 하나로 처리하고 있는 듯
+	// 여기에서도 여러개로 처리해야 하는데, 왜 이렇게 되어있는지?
 	recvPacket >> packet.no;
 	int getLeftSize = recvPacket.GetUseSize();
 	recvPacket.ReadBuffer((char*)packet.testString, getLeftSize);
