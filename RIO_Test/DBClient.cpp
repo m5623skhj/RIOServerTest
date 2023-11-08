@@ -85,3 +85,13 @@ void DBClient::CallProcedure(CSerializationBuf& packet)
 {
 	CMultiLanClient::SendPacket(&packet);
 }
+
+void DBClient::SendPacket(CSerializationBuf& packet)
+{
+	CMultiLanClient::SendPacket(&packet);
+}
+
+void DBClient::SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId)
+{
+	CMultiLanClient::SendPacket(&packet, sessionId);
+}

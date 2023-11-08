@@ -11,7 +11,7 @@ class RIOTestSession;
 
 class DBJob
 {
-	friend BatchedDBJob;
+	friend class BatchedDBJob;
 
 public:
 	DBJob() = delete;
@@ -30,13 +30,13 @@ private:
 
 private:
 	CSerializationBuf* jobSPBuffer = nullptr;
-	unsigned char batchedNo = 0;
 };
 
 class BatchedDBJob
 {
 public:
-	BatchedDBJob() = default;
+	BatchedDBJob() = delete;
+	explicit BatchedDBJob(std::shared_ptr<RIOTestSession> inOwner);
 	virtual ~BatchedDBJob() = default;
 
 public:
@@ -48,6 +48,7 @@ public:
 
 private:
 	std::list<std::shared_ptr<DBJob>> jobList;
+	std::shared_ptr<RIOTestSession> owner = nullptr;
 };
 
 class GlobalDBJob : public DBJob

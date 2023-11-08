@@ -3,6 +3,7 @@
 #include "DBClient.h"
 #include "RIOTestSession.h"
 #include "DBClient.h"
+#include "../../DBConnector/DBConnector/DBServerProtocol.h"
 
 #pragma region DBJob
 DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer)
@@ -29,8 +30,19 @@ bool DBJob::ExecuteJob()
 		return false;
 	}
 
-	DBClient::GetInstance().CallProcedure(*jobSPBuffer);
+	DBClient::GetInstance().SendPacketToFixedChannel(*jobSPBuffer, owner->GetSessionId());
 	return true;
+}
+
+BatchedDBJob::BatchedDBJob(std::shared_ptr<RIOTestSession> inOwner)
+{
+	if (inOwner == nullptr)
+	{
+		printf("BatchedDBJob : Owner is nullptr");
+		g_Dump.Crash();
+	}
+
+	owner = inOwner;
 }
 
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
@@ -46,13 +58,17 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
-	int batchedNo = 0;
+	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
+	UINT packetId = DBServerProtocol::PACKET_ID::BATCHED_DB_JOB;
+	UINT batchSize = static_cast<UINT>(jobList.size());
+	batchStartPacket << packetId;
+	batchStartPacket << owner->GetSessionId();
+	batchStartPacket << batchSize;
+	DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
+
 	for (auto& job : jobList)
 	{
-		job->batchedNo = batchedNo;
 		job->ExecuteJob();
-
-		++batchedNo;
 	}
 
 	return ERROR_CODE::SUCCESS;
