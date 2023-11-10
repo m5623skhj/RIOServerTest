@@ -87,7 +87,6 @@ private:
 	RIO_CQ* rioCQList;
 	
 	std::shared_ptr<char> rioSendBuffer = nullptr;
-	RIO_BUFFERID rioSendBufferId = RIO_INVALID_BUFFERID;
 
 	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;

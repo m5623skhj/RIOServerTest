@@ -111,7 +111,6 @@ void RIOTestServer::StopServer()
 	{
 		rioFunctionTable.RIOCloseCompletionQueue(rioCQList[i]);
 	}
-	rioFunctionTable.RIODeregisterBuffer(rioSendBufferId);
 
 	delete[] rioCQList;
 
