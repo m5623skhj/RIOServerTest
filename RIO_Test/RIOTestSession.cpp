@@ -59,7 +59,7 @@ void RIOTestSession::SendPacket(IPacket& packet)
 	}
 
 	*buffer << packet.GetPacketId();
-	buffer->WriteBuffer((char*)(&packet) + 8, packet.GetPacketSize());
+	packet.PacketToBuffer(*buffer);
 
 	SendPacket(*buffer);
 }
@@ -117,9 +117,8 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 	}
 
 	char* targetPtr = reinterpret_cast<char*>(packet.get()) + sizeof(char*);
-	memcpy(targetPtr, recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
 	std::any anyPacket = std::any(packet.get());
-	packetHandler(*this, anyPacket);
+	packetHandler(*this, recvPacket, anyPacket);
 }
 
 void RIOTestSession::OnSessionReleased(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable)

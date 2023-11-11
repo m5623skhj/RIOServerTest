@@ -13,7 +13,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& pack
 	UNREFERENCED_PARAMETER(packet);
 
 	TestStringPacket sendPacket;
-	memcpy(sendPacket.testString, packet.testString, sizeof(packet.testString));
+	sendPacket.testString = packet.testString;
 
 	session.SendPacket(sendPacket);
 	//Broadcaster::GetInst().BraodcastToAllSession(sendPacket);
@@ -33,8 +33,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacke
 {
 	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
 	UINT packetId = DBServerProtocol::PACKET_ID::TEST;
-	buffer << packetId << session.GetSessionId() << packet.id3;
-	buffer.WriteBuffer((char*)packet.testString, sizeof(packet.testString));
+	buffer << packetId << session.GetSessionId() << packet.id3 << packet.testString;
 
 	DBClient::GetInstance().CallProcedure(buffer);
 
@@ -54,8 +53,8 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2Procedu
 
 bool PacketManager::HandlePacket(RIOTestSession& session, Ping& packet)
 {
-	Ping ping;
-	session.SendPacket(ping);
+	Pong pong;
+	session.SendPacket(pong);
 
 	return true;
 }

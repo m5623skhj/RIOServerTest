@@ -23,7 +23,7 @@ public:
 
 public:
 	void BraodcastToAllSession(IPacket& packet);
-	void BraodcastToAllSession(NetBuffer& packet);
+	//void BraodcastToAllSession(NetBuffer& packet);
 
 private:
 	void OnSessionEntered(SessionId enteredSessionId);
