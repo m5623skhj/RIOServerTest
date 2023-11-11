@@ -154,7 +154,6 @@
     <ClCompile Include="RIOTestSession.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\DBConnector\DBConnector\DBServerProtocol.h" />
     <ClInclude Include="..\..\DBConnector\DBConnector\StoredProcedure.h" />
     <ClInclude Include="Broadcaster.h" />
     <ClInclude Include="BuildConfig.h" />

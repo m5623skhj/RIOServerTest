@@ -139,8 +139,6 @@
     <ClInclude Include="DBClient.h">
       <Filter>DBClient</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\DBConnector\DBConnector\DBServerProtocol.h">
-      <Filter>Protocol</Filter>
     </ClInclude>
     <ClInclude Include="..\..\DBConnector\DBConnector\StoredProcedure.h">
       <Filter>Protocol</Filter>

@@ -42,6 +42,10 @@ enum class PACKET_ID : unsigned int
 	, PONG
 	, REQUEST_FILE_STREAM
 	, RESPONSE_FILE_STREAM
+	, TEST
+	, BATCHED_DB_JOB
+	, SELECT_TEST_2
+	, BATCHED_DB_JOB_RES
 };
 
 enum class ERROR_CODE : unsigned short

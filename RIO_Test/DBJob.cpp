@@ -3,7 +3,7 @@
 #include "DBClient.h"
 #include "RIOTestSession.h"
 #include "DBClient.h"
-#include "../../DBConnector/DBConnector/DBServerProtocol.h"
+#include "EnumType.h"
 
 #pragma region DBJob
 DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer)
@@ -59,7 +59,7 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
 	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
-	UINT packetId = DBServerProtocol::PACKET_ID::BATCHED_DB_JOB;
+	PACKET_ID packetId = PACKET_ID::BATCHED_DB_JOB;
 	UINT batchSize = static_cast<UINT>(jobList.size());
 	batchStartPacket << packetId;
 	batchStartPacket << owner->GetSessionId();
