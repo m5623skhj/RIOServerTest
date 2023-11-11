@@ -222,8 +222,6 @@ public:
 #define REGISTER_DB_REPLY_HANDLER(PacketType)\
 	RegisterPacketHandler<PacketType>();
 
-// 이거 뭔가 이상한데
-// 왜 packet하고 recvPacket하고 둘 다 주는건지?
 #define DECLARE_DB_REPLY_HANDLER(PacketType)\
 	static bool AssemblePacket(PacketType& packet, OUT CSerializationBuf& recvPacket);\
 
