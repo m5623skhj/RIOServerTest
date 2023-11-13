@@ -5,6 +5,7 @@
 #include "EnumType.h"
 #include "DefineType.h"
 #include "NetServerSerializeBuffer.h"
+#include <list>
 
 using PacketId = unsigned int;
 
@@ -146,8 +147,8 @@ public:
 	SET_PARAMETERS(no, testString);
 
 public:
-	int no = 0;
-	std::string testString;
+	std::list<int> no;
+	std::list<std::string> testString;
 };
 
 class Ping : public IPacket
