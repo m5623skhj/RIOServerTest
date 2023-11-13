@@ -3,10 +3,42 @@
 #include "LanServerSerializeBuf.h"
 #include "NetServerSerializeBuffer.h"
 #include "PacketManager.h"
+#include "RIOTestServer.h"
 
 void ProcedureReplyHandler::Initialize()
 {
 	REGISTER_ALL_DB_REPLY_HANDLER();
+}
+
+void ProcedureReplyHandler::SPReplyHandle(UINT packetId, OUT CSerializationBuf& recvPacket)
+{
+	auto packetHandler = ProcedureReplyHandler::GetInst().GetPacketHandler(packetId);
+	if(packetHandler == nullptr)
+	{
+		return;
+	}
+
+	auto packet = PacketManager::GetInst().MakePacket(packetId);
+	if (packet == nullptr)
+	{
+		return;
+	}
+
+	char* targetPtr = reinterpret_cast<char*>(packet.get()) + sizeof(char*);
+	memcpy(targetPtr, recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
+	std::any anyPacket = std::any(packet.get());
+	packetHandler(anyPacket, recvPacket);
+}
+
+DBPacketReplyHandler ProcedureReplyHandler::GetPacketHandler(UINT packetId)
+{
+	auto iter = packetHandlerMap.find(packetId);
+	if (iter == packetHandlerMap.end())
+	{
+		return nullptr;
+	}
+
+	return iter->second;
 }
 
 bool ProcedureReplyHandler::AssemblePacket(CallTestProcedurePacketReply& packet, OUT CSerializationBuf& recvPacket)
@@ -19,6 +51,14 @@ bool ProcedureReplyHandler::AssemblePacket(CallTestProcedurePacketReply& packet,
 
 bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& packet, OUT CSerializationBuf& recvPacket)
 {
+	SessionId ownerSessionId;
+	recvPacket >> ownerSessionId;
+	auto session = RIOTestServer::GetInst().GetSession(ownerSessionId);
+	if (session == nullptr)
+	{
+		return false;
+	}
+	
 	struct listItem
 	{
 		std::list<int> noList;
@@ -27,41 +67,24 @@ bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& 
 	listItem receivedList;
 
 	recvPacket >> receivedList.noList >> receivedList.testStringList;
+	auto sendBuffer = NetBuffer::Alloc();
+	*sendBuffer << receivedList.noList << receivedList.testStringList;
+	session->SendPacket(*sendBuffer);
+
 	return true;
 }
 
-std::shared_ptr<IPacket> ProcedureReplyHandler::MakeProcedureResponse(UINT packetId, OUT CSerializationBuf& recvPacket)
+bool ProcedureReplyHandler::AssemblePacket(DBJobReply& packet, OUT CSerializationBuf& recvPacket)
 {
-	auto packetHandler = ProcedureReplyHandler::GetInst().GetPacketHandler(packetId);
-	if(packetHandler == nullptr)
+	SessionId ownerSessionId;
+	recvPacket >> ownerSessionId;
+	auto session = RIOTestServer::GetInst().GetSession(ownerSessionId);
+	if (session == nullptr)
 	{
-		return nullptr;
+		return false;
 	}
 
-	auto packet = PacketManager::GetInst().MakePacket(packetId);
-	if (packet == nullptr)
-	{
-		return nullptr;
-	}
 
-	char* targetPtr = reinterpret_cast<char*>(packet.get()) + sizeof(char*);
-	memcpy(targetPtr, recvPacket.GetReadBufferPtr(), recvPacket.GetUseSize());
-	std::any anyPacket = std::any(packet.get());
-	if (packetHandler(anyPacket, recvPacket) == false)
-	{
-		return nullptr;
-	}
 
-	return packet;
-}
-
-DBPacketReplyHandler ProcedureReplyHandler::GetPacketHandler(UINT packetId)
-{
-	auto iter = packetHandlerMap.find(packetId);
-	if (iter == packetHandlerMap.end())
-	{
-		return nullptr;
-	}
-
-	return iter->second;
+	return true;
 }

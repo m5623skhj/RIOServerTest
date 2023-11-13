@@ -132,9 +132,10 @@ public:
 	~CallTestProcedurePacketReply() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
 	GET_PACKET_SIZE();
-	SET_NO_PARAMETER();
+	SET_PARAMETERS(ownerSessionId);
 
 public:
+	SessionId ownerSessionId = INVALID_SESSION_ID;
 };
 
 class CallSelectTest2ProcedurePacketReply : public IPacket
@@ -144,9 +145,10 @@ public:
 	~CallSelectTest2ProcedurePacketReply() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
 	GET_PACKET_SIZE();
-	SET_PARAMETERS(no, testString);
+	SET_PARAMETERS(ownerSessionId, no, testString);
 
 public:
+	SessionId ownerSessionId = INVALID_SESSION_ID;
 	std::list<int> no;
 	std::list<std::string> testString;
 };
@@ -180,10 +182,34 @@ class ResponseFileStream : public IPacket
 public:
 	GET_PACKET_ID(PACKET_ID::RESPONSE_FILE_STREAM);
 	GET_PACKET_SIZE();
-	SET_PARAMETERS_TO_BUFFER(fileStream);
+	SET_PARAMETERS(fileStream);
 
 public:
 	char fileStream[4096];
+};
+
+class DBJobStart : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB);
+	GET_PACKET_SIZE();
+	SET_PARAMETERS(batchSize, jobKey);
+
+public:
+	UINT batchSize = 0;
+	DBJobKey jobKey = INVALID_DB_JOB_KEY;
+};
+
+class DBJobReply : public IPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB_RES);
+	GET_PACKET_SIZE();
+	SET_PARAMETERS(jobKey, isSuccessed);
+
+public:
+	DBJobKey jobKey = UINT64_MAX;
+	bool isSuccessed = false;
 };
 
 #pragma pack(pop)
@@ -229,10 +255,12 @@ public:
 #define REGISTER_ALL_DB_REPLY_HANDLER()\
 	REGISTER_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
 	REGISTER_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
+	REGISTER_DB_REPLY_HANDLER(DBJobReply)\
 
 #define DECLARE_ALL_DB_REPLY_HANDLER()\
 	DECLARE_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
 	DECLARE_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
+	DECLARE_DB_REPLY_HANDLER(DBJobReply)\
 
 #pragma endregion ForDB
 
@@ -245,4 +273,5 @@ public:
 	REGISTER_PACKET(CallSelectTest2ProcedurePacketReply)\
 	REGISTER_PACKET(Ping)\
 	REGISTER_PACKET(RequestFileStream)\
+	REGISTER_PACKET(DBJobReply)\
 }

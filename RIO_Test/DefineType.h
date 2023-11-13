@@ -11,5 +11,7 @@
 
 #define ONE_FRAME 33
 
+#define INVALID_DB_JOB_KEY UINT64_MAX
+
 using SessionId = UINT64;
 using DBJobKey = UINT64;

@@ -58,12 +58,13 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
+	DBJobManager::GetInst().RegisterDBJob(std::make_shared<BatchedDBJob>(*this));
+
 	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
 	PACKET_ID packetId = PACKET_ID::BATCHED_DB_JOB;
 	UINT batchSize = static_cast<UINT>(jobList.size());
-	batchStartPacket << packetId;
-	batchStartPacket << owner->GetSessionId();
-	batchStartPacket << batchSize;
+	DBJobKey jobKey = 0;
+	batchStartPacket << packetId << batchSize << jobKey;
 	DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
 
 	for (auto& job : jobList)

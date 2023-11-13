@@ -41,7 +41,7 @@ public:
 		packetHandlerMap[packetType.GetPacketId()] = handler;
 	}
 
-	std::shared_ptr<IPacket> MakeProcedureResponse(UINT packetId, OUT CSerializationBuf& recvPacket);
+	void SPReplyHandler(UINT packetId, OUT CSerializationBuf& recvPacket);
 	DBPacketReplyHandler GetPacketHandler(UINT packetId);
 
 private:
