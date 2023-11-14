@@ -4,18 +4,21 @@
 #include "RIOTestSession.h"
 #include "DBClient.h"
 #include "EnumType.h"
+#include "Protocol.h"
 
 #pragma region DBJob
-DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer)
+DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, IDBSendPacket& packet, DBJobKey dbJobKey)
 {
-	if (spBuffer == nullptr || inOwner == nullptr)
+	if (inOwner == nullptr || dbJobKey == INVALID_DB_JOB_KEY)
 	{
-		printf("Invalid sp buffer");
+		printf("Invalid db job parameter");
 		g_Dump.Crash();
 	}
 
 	owner = inOwner;
-	jobSPBuffer = spBuffer;
+	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
+	buffer << dbJobKey;
+	packet.PacketToBuffer(buffer);
 }
 
 DBJob::~DBJob()
@@ -43,6 +46,7 @@ BatchedDBJob::BatchedDBJob(std::shared_ptr<RIOTestSession> inOwner)
 	}
 
 	owner = inOwner;
+	dbJobKey = DBJobManager::GetInst().GetDBJobKey();
 }
 
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
@@ -63,8 +67,7 @@ ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
 	PACKET_ID packetId = PACKET_ID::BATCHED_DB_JOB;
 	UINT batchSize = static_cast<UINT>(jobList.size());
-	DBJobKey jobKey = 0;
-	batchStartPacket << packetId << batchSize << jobKey;
+	batchStartPacket << packetId << batchSize << dbJobKey;
 	DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
 
 	for (auto& job : jobList)
@@ -101,7 +104,7 @@ DBJobManager& DBJobManager::GetInst()
 
 void DBJobManager::RegisterDBJob(std::shared_ptr<BatchedDBJob> job)
 {
-	std::lock_guard<std::mutex> guardLock(lock);
+	std::lock_guard<std::mutex> guardLock(jobMapLock);
 	DBJobKey key = jobKey.fetch_add(1);
 
 	jobMap.insert({ key, job });
@@ -109,7 +112,7 @@ void DBJobManager::RegisterDBJob(std::shared_ptr<BatchedDBJob> job)
 
 std::shared_ptr<BatchedDBJob> DBJobManager::GetRegistedDBJob(DBJobKey jobKey)
 {
-	std::lock_guard<std::mutex> guardLock(lock);
+	std::lock_guard<std::mutex> guardLock(jobMapLock);
 	auto iter = jobMap.find(jobKey);
 	if (iter == jobMap.end())
 	{
@@ -117,5 +120,16 @@ std::shared_ptr<BatchedDBJob> DBJobManager::GetRegistedDBJob(DBJobKey jobKey)
 	}
 
 	return iter->second;
+}
+
+void DBJobManager::DeregisterDBJob(DBJobKey jobKey)
+{
+	std::lock_guard<std::mutex> guardLock(jobMapLock);
+	jobMap.erase(jobKey);
+}
+
+DBJobKey DBJobManager::GetDBJobKey()
+{
+	return jobKey.fetch_add(1);
 }
 #pragma endregion DBJobManager

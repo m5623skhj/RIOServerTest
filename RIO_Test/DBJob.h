@@ -8,6 +8,7 @@
 #include "LanServerSerializeBuf.h"
 
 class RIOTestSession;
+class IDBSendPacket;
 
 class DBJob
 {
@@ -15,7 +16,7 @@ class DBJob
 
 public:
 	DBJob() = delete;
-	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, CSerializationBuf* spBuffer);
+	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, IDBSendPacket& packet, DBJobKey dbJobKey);
 	virtual ~DBJob();
 
 public:
@@ -49,6 +50,12 @@ public:
 private:
 	std::list<std::shared_ptr<DBJob>> jobList;
 	std::shared_ptr<RIOTestSession> owner = nullptr;
+
+public:
+	DBJobKey GetDBJobKey();
+
+private:
+	DBJobKey dbJobKey = INVALID_DB_JOB_KEY;
 };
 
 class GlobalDBJob : public DBJob
@@ -80,11 +87,14 @@ public:
 public:
 	void RegisterDBJob(std::shared_ptr<BatchedDBJob> job);
 	std::shared_ptr<BatchedDBJob> GetRegistedDBJob(DBJobKey jobKey);
+	void DeregisterDBJob(DBJobKey jobKey);
+
+	DBJobKey GetDBJobKey();
 
 private:
-	std::atomic<DBJobKey> jobKey;
+	std::atomic<DBJobKey> jobKey = 1;
 
 	// 관리의 용이성을 위해서 일반 DBJob도 BatchedDBJob에 넣어서 보냄
 	std::map<DBJobKey, std::shared_ptr<BatchedDBJob>> jobMap;
-	std::mutex lock;
+	std::mutex jobMapLock;
 };

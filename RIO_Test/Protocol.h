@@ -5,6 +5,7 @@
 #include "EnumType.h"
 #include "DefineType.h"
 #include "NetServerSerializeBuffer.h"
+#include "LanServerSerializeBuf.h"
 #include <list>
 
 using PacketId = unsigned int;
@@ -44,11 +45,30 @@ void SetParametersToBuffer(OUT NetBuffer& buffer, T& param, Args&... argList)
 	SetParametersToBuffer(buffer, argList...);
 }
 
+template<typename T>
+void SetParametersToBuffer(OUT CSerializationBuf& buffer, T& param)
+{
+	buffer << param;
+}
+
+template<typename T, typename... Args>
+void SetParametersToBuffer(OUT CSerializationBuf& buffer, T& param, Args&... argList)
+{
+	buffer << param;
+	SetParametersToBuffer(buffer, argList...);
+}
+
 #define SET_NO_PARAMETERS_TO_BUFFER()\
 virtual void PacketToBuffer(OUT NetBuffer& buffer) override { UNREFERENCED_PARAMETER(buffer); }
 
 #define SET_PARAMETERS_TO_BUFFER(...)\
 virtual void PacketToBuffer(OUT NetBuffer& buffer) override { SetParametersToBuffer(buffer, __VA_ARGS__); }
+
+#define SET_NO_PARAMETERS_TO_BUFFER_FOR_DBSERVER()\
+virtual void PacketToBuffer(OUT NetBuffer& buffer) override { UNREFERENCED_PARAMETER(buffer); }
+
+#define SET_PARAMETERS_TO_BUFFER_FOR_DBSERVER(...)\
+virtual void PacketToBuffer(OUT CSerializationBuf& buffer) override { SetParametersToBuffer(buffer, __VA_ARGS__); }
 
 #define SET_NO_PARAMETER()\
 	SET_NO_BUFFER_TO_PARAMETER()\
@@ -60,6 +80,7 @@ virtual void PacketToBuffer(OUT NetBuffer& buffer) override { SetParametersToBuf
 	SET_PARAMETERS_TO_BUFFER(__VA_ARGS__)
 
 #pragma pack(push, 1)
+// IPacket을 최상위로 올리고 GameClientPacket, GameDBPacket 이런 식으로 나누는게 맞을까?
 class IPacket
 {
 public:
@@ -70,6 +91,12 @@ public:
 	virtual int GetPacketSize() = 0;
 	virtual void BufferToPacket(OUT NetBuffer& buffer) = 0;
 	virtual void PacketToBuffer(OUT NetBuffer& buffer) = 0;
+};
+
+class IDBSendPacket : IPacket
+{
+public:
+	virtual void PacketToBuffer(OUT CSerializationBuf& buffer) = 0;
 };
 
 class TestStringPacket : public IPacket
@@ -112,7 +139,7 @@ public:
 	std::wstring testString;
 };
 
-class CallSelectTest2ProcedurePacket : public IPacket
+class CallSelectTest2ProcedurePacket : public IPacket // public IDBSendPacket
 {
 public:
 	CallSelectTest2ProcedurePacket() = default;
@@ -120,6 +147,7 @@ public:
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS(id);
+	//SET_PARAMETERS_TO_BUFFER_FOR_DBSERVER(id);
 
 public:
 	long long id = 0;
@@ -196,6 +224,7 @@ public:
 	SET_PARAMETERS(batchSize, jobKey);
 
 public:
+	SessionId sessionId = INVALID_SESSION_ID;
 	UINT batchSize = 0;
 	DBJobKey jobKey = INVALID_DB_JOB_KEY;
 };
