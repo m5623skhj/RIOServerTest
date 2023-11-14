@@ -41,7 +41,7 @@ public:
 		packetHandlerMap[packetType.GetPacketId()] = handler;
 	}
 
-	void SPReplyHandler(UINT packetId, OUT CSerializationBuf& recvPacket);
+	void SPReplyHandle(UINT packetId, OUT CSerializationBuf& recvPacket);
 	DBPacketReplyHandler GetPacketHandler(UINT packetId);
 
 private:
