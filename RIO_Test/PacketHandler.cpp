@@ -5,6 +5,8 @@
 #include "Protocol.h"
 #include "DBClient.h"
 #include "LanServerSerializeBuf.h"
+#include "TestDBJob.h"
+#include "DBJobUtil.h"
 
 bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& packet)
 {
@@ -30,11 +32,14 @@ bool PacketManager::HandlePacket(RIOTestSession& session, EchoStringPacket& pack
 
 bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacket& packet)
 {
-	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
-	PACKET_ID packetId = PACKET_ID::TEST;
-	buffer << packetId << session.GetSessionId() << packet.id3 << packet.testString;
+	test t;
+	t.id3 = packet.id3;
+	t.teststring = packet.testString;
 
-	DBClient::GetInstance().CallProcedure(buffer);
+	auto batchJob = MakeBatchedDBJob(session);
+	auto job = MakeDBJob<DBJob_test>(session, t, batchJob->GetDBJobKey());
+	batchJob->AddDBJob(job);
+	batchJob->ExecuteBatchJob();
 
 	return true;
 }
@@ -45,7 +50,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2Procedu
 	PACKET_ID packetId = PACKET_ID::SELECT_TEST_2;
 	buffer << packetId << session.GetSessionId() << packet.id;
 
-	DBClient::GetInstance().CallProcedure(buffer);
+	//DBClient::GetInstance().CallProcedure(buffer);
 
 	return true;
 }

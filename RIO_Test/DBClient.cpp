@@ -4,6 +4,7 @@
 #include "NetServerSerializeBuffer.h"
 #include "ProcedureReplyHandler.h"
 #include <memory>
+#include "DBJob.h"
 
 DBClient::DBClient()
 {
@@ -68,17 +69,22 @@ void DBClient::OnDisconnect()
 
 }
 
-void DBClient::CallProcedure(CSerializationBuf& packet)
-{
-	CMultiLanClient::SendPacket(&packet);
-}
+//void DBClient::CallProcedure(CSerializationBuf& packet)
+//{
+//	CMultiLanClient::SendPacket(&packet);
+//}
+//
+//void DBClient::SendPacket(CSerializationBuf& packet)
+//{
+//	CMultiLanClient::SendPacket(&packet);
+//}
+//
+//void DBClient::SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId)
+//{
+//	CMultiLanClient::SendPacket(&packet, sessionId);
+//}
 
-void DBClient::SendPacket(CSerializationBuf& packet)
+void DBClient::SendPacketToFixedChannel(DBJob& dbJob)
 {
-	CMultiLanClient::SendPacket(&packet);
-}
-
-void DBClient::SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId)
-{
-	CMultiLanClient::SendPacket(&packet, sessionId);
+	CMultiLanClient::SendPacket(dbJob.GetJobBuffer());
 }

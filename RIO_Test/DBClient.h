@@ -1,6 +1,8 @@
 #pragma once
 #include "MultiLanClient.h"
 
+class DBJob;
+
 class DBClient : public CMultiLanClient
 {
 private:
@@ -30,9 +32,10 @@ public:
 	virtual void OnDisconnect();
 
 public:
-	void CallProcedure(CSerializationBuf& packet);
-	void SendPacket(CSerializationBuf& packet);
-	void SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId);
+	//void CallProcedure(CSerializationBuf& packet);
+	//void SendPacket(CSerializationBuf& packet);
+	//void SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId);
+	void SendPacketToFixedChannel(DBJob& dbJob);
 
 private:
 

@@ -7,15 +7,15 @@
 #include "Protocol.h"
 
 #pragma region DBJob
-DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
+DBJob::DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
+	: owner(inOwner)
 {
-	if (inOwner == nullptr || dbJobKey == INVALID_DB_JOB_KEY)
+	if (dbJobKey == INVALID_DB_JOB_KEY)
 	{
 		printf("Invalid db job parameter");
 		g_Dump.Crash();
 	}
 
-	owner = inOwner;
 	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
 	buffer << dbJobKey;
 	packet.PacketToBuffer(buffer);
@@ -33,20 +33,24 @@ bool DBJob::ExecuteJob()
 		return false;
 	}
 
-	DBClient::GetInstance().SendPacketToFixedChannel(*jobSPBuffer, owner->GetSessionId());
+	DBClient::GetInstance().SendPacketToFixedChannel(*this);
 	return true;
 }
 
-BatchedDBJob::BatchedDBJob(std::shared_ptr<RIOTestSession> inOwner)
+CSerializationBuf* DBJob::GetJobBuffer()
 {
-	if (inOwner == nullptr)
-	{
-		printf("BatchedDBJob : Owner is nullptr");
-		g_Dump.Crash();
-	}
+	return jobSPBuffer;
+}
 
-	owner = inOwner;
+BatchedDBJob::BatchedDBJob(RIOTestSession& inOwner)
+	: owner(inOwner)
+{
 	dbJobKey = DBJobManager::GetInst().GetDBJobKey();
+}
+
+BatchedDBJob::~BatchedDBJob()
+{
+	DBJobManager::GetInst().DeregisterDBJob(dbJobKey);
 }
 
 ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
@@ -62,13 +66,11 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
-	DBJobManager::GetInst().RegisterDBJob(std::make_shared<BatchedDBJob>(*this));
-
 	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
 	PACKET_ID packetId = PACKET_ID::BATCHED_DB_JOB;
 	UINT batchSize = static_cast<UINT>(jobList.size());
 	batchStartPacket << packetId << batchSize << dbJobKey;
-	DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
+	//DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
 
 	for (auto& job : jobList)
 	{

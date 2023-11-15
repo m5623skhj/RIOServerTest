@@ -241,6 +241,18 @@ public:
 	std::list<std::string> testString;
 };
 
+class test : public IGameAndDBPacket
+{
+public:
+	GET_PACKET_ID(PACKET_ID::TEST);
+	GET_PACKET_SIZE();
+	SET_PARAMETERS_TO_BUFFER_DB_PACKET(id3, teststring);
+
+public:
+	int id3 = 0;
+	std::wstring teststring;
+};
+
 #pragma endregion DBServer
 
 #pragma pack(pop)

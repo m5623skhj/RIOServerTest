@@ -142,6 +142,7 @@
     <ClCompile Include="Broadcaster.cpp" />
     <ClCompile Include="DBClient.cpp" />
     <ClCompile Include="DBJob.cpp" />
+    <ClCompile Include="DBJobUtil.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
     <ClCompile Include="GlobalUtil.cpp" />
     <ClCompile Include="MultiLanClient.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RIOTestServer.cpp" />
     <ClCompile Include="RIOTestSession.cpp" />
+    <ClCompile Include="TestDBJob.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\DBConnector\DBConnector\StoredProcedure.h" />
@@ -159,6 +161,7 @@
     <ClInclude Include="BuildConfig.h" />
     <ClInclude Include="DBClient.h" />
     <ClInclude Include="DBJob.h" />
+    <ClInclude Include="DBJobUtil.h" />
     <ClInclude Include="DeadlockChecker.h" />
     <ClInclude Include="DefineType.h" />
     <ClInclude Include="EnumType.h" />
@@ -170,6 +173,7 @@
     <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="RIOTestServer.h" />
     <ClInclude Include="RIOTestSession.h" />
+    <ClInclude Include="TestDBJob.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

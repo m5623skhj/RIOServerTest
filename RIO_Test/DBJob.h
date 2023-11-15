@@ -6,6 +6,7 @@
 #include <map>
 #include <mutex>
 #include "LanServerSerializeBuf.h"
+#include "RIOTestSession.h"
 
 class RIOTestSession;
 class IGameAndDBPacket;
@@ -16,7 +17,7 @@ class DBJob
 
 public:
 	DBJob() = delete;
-	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey);
+	explicit DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey);
 	virtual ~DBJob();
 
 public:
@@ -25,9 +26,10 @@ public:
 
 public:
 	bool ExecuteJob();
+	CSerializationBuf* GetJobBuffer();
 
 private:
-	std::shared_ptr<RIOTestSession> owner = nullptr;
+	RIOTestSession& owner;
 
 private:
 	CSerializationBuf* jobSPBuffer = nullptr;
@@ -37,8 +39,8 @@ class BatchedDBJob
 {
 public:
 	BatchedDBJob() = delete;
-	explicit BatchedDBJob(std::shared_ptr<RIOTestSession> inOwner);
-	virtual ~BatchedDBJob() = default;
+	explicit BatchedDBJob(RIOTestSession& inOwner);
+	virtual ~BatchedDBJob();
 
 public:
 	ERROR_CODE AddDBJob(std::shared_ptr<DBJob> job);
@@ -49,10 +51,10 @@ public:
 
 private:
 	std::list<std::shared_ptr<DBJob>> jobList;
-	std::shared_ptr<RIOTestSession> owner = nullptr;
+	RIOTestSession& owner;
 
 public:
-	DBJobKey GetDBJobKey();
+	DBJobKey GetDBJobKey() { return dbJobKey; }
 
 private:
 	DBJobKey dbJobKey = INVALID_DB_JOB_KEY;
