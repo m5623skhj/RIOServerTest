@@ -49,7 +49,7 @@ bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunction
 	return true;
 }
 
-void RIOTestSession::SendPacket(IPacket& packet)
+void RIOTestSession::SendPacket(IGameAndClientPacket& packet)
 {
 	NetBuffer* buffer = NetBuffer::Alloc();
 	if (buffer == nullptr)
@@ -69,7 +69,7 @@ void RIOTestSession::SendPacket(NetBuffer& packet)
 	RIOTestServer::GetInst().SendPacket(*this, packet);
 }
 
-void RIOTestSession::SendPacketAndDisconnect(IPacket& packet)
+void RIOTestSession::SendPacketAndDisconnect(IGameAndClientPacket& packet)
 {
 	sendDisconnect = true;
 	NetBuffer* buffer = NetBuffer::Alloc();

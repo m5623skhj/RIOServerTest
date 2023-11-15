@@ -8,7 +8,7 @@
 #include "LanServerSerializeBuf.h"
 
 class RIOTestSession;
-class IDBSendPacket;
+class IGameAndDBPacket;
 
 class DBJob
 {
@@ -16,7 +16,7 @@ class DBJob
 
 public:
 	DBJob() = delete;
-	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, IDBSendPacket& packet, DBJobKey dbJobKey);
+	explicit DBJob(std::shared_ptr<RIOTestSession> inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey);
 	virtual ~DBJob();
 
 public:

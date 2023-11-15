@@ -27,12 +27,12 @@ public:
 	void Init();
 
 public:
-	using PacketFactoryFunction = std::function<std::shared_ptr<IPacket>()>;
+	using PacketFactoryFunction = std::function<std::shared_ptr<IGameAndClientPacket>()>;
 
 	template <typename PacketType>
 	void RegisterPacket()
 	{
-		static_assert(std::is_base_of<IPacket, PacketType>::value, "RegisterPacket() : PacketType must inherit from IPacket");
+		static_assert(std::is_base_of<IGameAndClientPacket, PacketType>::value, "RegisterPacket() : PacketType must inherit from IGameAndClientPacket");
 		PacketFactoryFunction factoryFunc = []()
 		{
 			return std::make_shared<PacketType>();
@@ -45,10 +45,10 @@ public:
 	template <typename PacketType>
 	void RegisterPacketHandler()
 	{
-		static_assert(std::is_base_of<IPacket, PacketType>::value, "RegisterPacketHandler() : PacketType must inherit from IPacket");
+		static_assert(std::is_base_of<IGameAndClientPacket, PacketType>::value, "RegisterPacketHandler() : PacketType must inherit from IGameAndClientPacket");
 		auto handler = [](RIOTestSession& session, NetBuffer& buffer, std::any& packet)
 		{
-			auto realPacket = static_cast<PacketType*>(std::any_cast<IPacket*>(packet));
+			auto realPacket = static_cast<PacketType*>(std::any_cast<IGameAndClientPacket*>(packet));
 			realPacket->BufferToPacket(buffer);
 			return HandlePacket(session, *realPacket);
 		};

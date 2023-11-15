@@ -13,6 +13,7 @@ using PacketId = unsigned int;
 #define GET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
 #define GET_PACKET_ID(packetId) virtual PacketId GetPacketId() const override { return static_cast<PacketId>(packetId); }
 
+#pragma region ForGameServerPacket
 template<typename T>
 void SetBufferToParameters(OUT NetBuffer& buffer, T& param)
 {
@@ -25,12 +26,6 @@ void SetBufferToParameters(OUT NetBuffer& buffer, T& param, Args&... argList)
 	buffer >> param;
 	SetBufferToParameters(buffer, argList...);
 }
-
-#define SET_NO_BUFFER_TO_PARAMETER()\
-virtual void BufferToPacket(OUT NetBuffer& buffer) override { UNREFERENCED_PARAMETER(buffer); }
-
-#define SET_BUFFER_TO_PARAMETERS(...)\
-virtual void BufferToPacket(OUT NetBuffer& buffer) override { SetBufferToParameters(buffer, __VA_ARGS__); }
 
 template<typename T>
 void SetParametersToBuffer(OUT NetBuffer& buffer, T& param)
@@ -45,6 +40,20 @@ void SetParametersToBuffer(OUT NetBuffer& buffer, T& param, Args&... argList)
 	SetParametersToBuffer(buffer, argList...);
 }
 
+#define SET_BUFFER_TO_PARAMETERS(...)\
+virtual void BufferToPacket(OUT NetBuffer& buffer) override { SetBufferToParameters(buffer, __VA_ARGS__); }
+
+#define SET_PARAMETERS_TO_BUFFER(...)\
+virtual void PacketToBuffer(OUT NetBuffer& buffer) override { SetParametersToBuffer(buffer, __VA_ARGS__); }
+
+// This function assembles the packet based on the order of the defined parameters
+#define SET_PARAMETERS(...)\
+	SET_BUFFER_TO_PARAMETERS(__VA_ARGS__)\
+	SET_PARAMETERS_TO_BUFFER(__VA_ARGS__)
+
+#pragma endregion ForGameServerPacket
+
+#pragma region ForDBServerPacket
 template<typename T>
 void SetParametersToBuffer(OUT CSerializationBuf& buffer, T& param)
 {
@@ -58,29 +67,18 @@ void SetParametersToBuffer(OUT CSerializationBuf& buffer, T& param, Args&... arg
 	SetParametersToBuffer(buffer, argList...);
 }
 
-#define SET_NO_PARAMETERS_TO_BUFFER()\
-virtual void PacketToBuffer(OUT NetBuffer& buffer) override { UNREFERENCED_PARAMETER(buffer); }
-
-#define SET_PARAMETERS_TO_BUFFER(...)\
-virtual void PacketToBuffer(OUT NetBuffer& buffer) override { SetParametersToBuffer(buffer, __VA_ARGS__); }
-
-#define SET_NO_PARAMETERS_TO_BUFFER_FOR_DBSERVER()\
-virtual void PacketToBuffer(OUT NetBuffer& buffer) override { UNREFERENCED_PARAMETER(buffer); }
-
-#define SET_PARAMETERS_TO_BUFFER_FOR_DBSERVER(...)\
+#define SET_PARAMETERS_TO_BUFFER_DB_PACKET(...)\
 virtual void PacketToBuffer(OUT CSerializationBuf& buffer) override { SetParametersToBuffer(buffer, __VA_ARGS__); }
 
-#define SET_NO_PARAMETER()\
-	SET_NO_BUFFER_TO_PARAMETER()\
-	SET_NO_PARAMETERS_TO_BUFFER()
+#pragma endregion ForDBServerPacket
 
-// This function assembles the packet based on the order of the defined parameters
-#define SET_PARAMETERS(...)\
-	SET_BUFFER_TO_PARAMETERS(__VA_ARGS__)\
-	SET_PARAMETERS_TO_BUFFER(__VA_ARGS__)
+////////////////////////////////////////////////////////////////////////////////////
+// Packet
+////////////////////////////////////////////////////////////////////////////////////
 
 #pragma pack(push, 1)
-// IPacket을 최상위로 올리고 GameClientPacket, GameDBPacket 이런 식으로 나누는게 맞을까?
+
+#pragma region GameServer
 class IPacket
 {
 public:
@@ -89,17 +87,16 @@ public:
 
 	virtual PacketId GetPacketId() const = 0;
 	virtual int GetPacketSize() = 0;
-	virtual void BufferToPacket(OUT NetBuffer& buffer) = 0;
-	virtual void PacketToBuffer(OUT NetBuffer& buffer) = 0;
 };
 
-class IDBSendPacket : IPacket
+class IGameAndClientPacket : public IPacket
 {
 public:
-	virtual void PacketToBuffer(OUT CSerializationBuf& buffer) = 0;
+	virtual void BufferToPacket(OUT NetBuffer& buffer) { UNREFERENCED_PARAMETER(buffer); }
+	virtual void PacketToBuffer(OUT NetBuffer& buffer) { UNREFERENCED_PARAMETER(buffer); }
 };
 
-class TestStringPacket : public IPacket
+class TestStringPacket : public IGameAndClientPacket
 {
 public:
 	TestStringPacket() = default;
@@ -112,7 +109,7 @@ public:
 	std::string testString;
 };
 
-class EchoStringPacket : public IPacket
+class EchoStringPacket : public IGameAndClientPacket
 {
 public:
 	EchoStringPacket() = default;
@@ -125,7 +122,7 @@ public:
 	char echoString[30];
 };
 
-class CallTestProcedurePacket : public IPacket
+class CallTestProcedurePacket : public IGameAndClientPacket
 {
 public:
 	CallTestProcedurePacket() = default;
@@ -139,7 +136,7 @@ public:
 	std::wstring testString;
 };
 
-class CallSelectTest2ProcedurePacket : public IPacket // public IDBSendPacket
+class CallSelectTest2ProcedurePacket : public IGameAndClientPacket
 {
 public:
 	CallSelectTest2ProcedurePacket() = default;
@@ -147,65 +144,33 @@ public:
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS(id);
-	//SET_PARAMETERS_TO_BUFFER_FOR_DBSERVER(id);
 
 public:
 	long long id = 0;
 };
 
-class CallTestProcedurePacketReply : public IPacket
-{
-public:
-	CallTestProcedurePacketReply() = default;
-	~CallTestProcedurePacketReply() = default;
-	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
-	GET_PACKET_SIZE();
-	SET_PARAMETERS(ownerSessionId);
-
-public:
-	SessionId ownerSessionId = INVALID_SESSION_ID;
-};
-
-class CallSelectTest2ProcedurePacketReply : public IPacket
-{
-public:
-	CallSelectTest2ProcedurePacketReply() = default;
-	~CallSelectTest2ProcedurePacketReply() = default;
-	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
-	GET_PACKET_SIZE();
-	SET_PARAMETERS(ownerSessionId, no, testString);
-
-public:
-	SessionId ownerSessionId = INVALID_SESSION_ID;
-	std::list<int> no;
-	std::list<std::string> testString;
-};
-
-class Ping : public IPacket
+class Ping : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::PING);
 	GET_PACKET_SIZE();
-	SET_NO_PARAMETER();
 };
 
-class Pong : public IPacket
+class Pong : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::PONG);
 	GET_PACKET_SIZE();
-	SET_NO_PARAMETER();
 };
 
-class RequestFileStream : public IPacket
+class RequestFileStream : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::REQUEST_FILE_STREAM);
 	GET_PACKET_SIZE();
-	SET_NO_PARAMETER();
 };
 
-class ResponseFileStream : public IPacket
+class ResponseFileStream : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::RESPONSE_FILE_STREAM);
@@ -216,12 +181,20 @@ public:
 	char fileStream[4096];
 };
 
-class DBJobStart : public IPacket
+#pragma endregion GameServer
+
+#pragma region DBServer
+class IGameAndDBPacket : public IPacket
+{
+public:
+	virtual void PacketToBuffer(OUT CSerializationBuf& buffer) { UNREFERENCED_PARAMETER(buffer); }
+};
+
+class DBJobStart : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB);
 	GET_PACKET_SIZE();
-	SET_PARAMETERS(batchSize, jobKey);
 
 public:
 	SessionId sessionId = INVALID_SESSION_ID;
@@ -229,25 +202,57 @@ public:
 	DBJobKey jobKey = INVALID_DB_JOB_KEY;
 };
 
-class DBJobReply : public IPacket
+class DBJobReply : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB_RES);
 	GET_PACKET_SIZE();
-	SET_PARAMETERS(jobKey, isSuccessed);
 
 public:
 	DBJobKey jobKey = UINT64_MAX;
 	bool isSuccessed = false;
 };
 
+class CallTestProcedurePacketReply : public IGameAndDBPacket
+{
+public:
+	CallTestProcedurePacketReply() = default;
+	~CallTestProcedurePacketReply() = default;
+	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
+	GET_PACKET_SIZE();
+	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId);
+
+public:
+	SessionId ownerSessionId = INVALID_SESSION_ID;
+};
+
+class CallSelectTest2ProcedurePacketReply : public IGameAndDBPacket
+{
+public:
+	CallSelectTest2ProcedurePacketReply() = default;
+	~CallSelectTest2ProcedurePacketReply() = default;
+	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
+	GET_PACKET_SIZE();
+	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId, no, testString);
+
+public:
+	SessionId ownerSessionId = INVALID_SESSION_ID;
+	std::list<int> no;
+	std::list<std::string> testString;
+};
+
+#pragma endregion DBServer
+
 #pragma pack(pop)
 
+////////////////////////////////////////////////////////////////////////////////////
+// Packet Register
+////////////////////////////////////////////////////////////////////////////////////
+
+#pragma region PacketHandler
 #define REGISTER_PACKET(PacketType){\
 	RegisterPacket<PacketType>();\
 }
-
-#pragma region PacketHandler
 
 #define REGISTER_HANDLER(PacketType)\
 	RegisterPacketHandler<PacketType>();
@@ -271,10 +276,18 @@ public:
 	DECLARE_HANDLE_PACKET(Ping)\
 	DECLARE_HANDLE_PACKET(RequestFileStream)\
 
+#define REGISTER_PACKET_LIST(){\
+	REGISTER_PACKET(TestStringPacket)\
+	REGISTER_PACKET(EchoStringPacket)\
+	REGISTER_PACKET(CallTestProcedurePacket)\
+	REGISTER_PACKET(CallSelectTest2ProcedurePacket)\
+	REGISTER_PACKET(Ping)\
+	REGISTER_PACKET(RequestFileStream)\
+}
+
 #pragma endregion PacketHandler
 
 #pragma region ForDB
-
 #define REGISTER_DB_REPLY_HANDLER(PacketType)\
 	RegisterPacketHandler<PacketType>();
 
@@ -292,15 +305,3 @@ public:
 	DECLARE_DB_REPLY_HANDLER(DBJobReply)\
 
 #pragma endregion ForDB
-
-#define REGISTER_PACKET_LIST(){\
-	REGISTER_PACKET(TestStringPacket)\
-	REGISTER_PACKET(EchoStringPacket)\
-	REGISTER_PACKET(CallTestProcedurePacket)\
-	REGISTER_PACKET(CallSelectTest2ProcedurePacket)\
-	REGISTER_PACKET(CallTestProcedurePacketReply)\
-	REGISTER_PACKET(CallSelectTest2ProcedurePacketReply)\
-	REGISTER_PACKET(Ping)\
-	REGISTER_PACKET(RequestFileStream)\
-	REGISTER_PACKET(DBJobReply)\
-}

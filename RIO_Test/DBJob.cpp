@@ -7,7 +7,7 @@
 #include "Protocol.h"
 
 #pragma region DBJob
-DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, IDBSendPacket& packet, DBJobKey dbJobKey)
+DBJob::DBJob(std::shared_ptr<RIOTestSession> inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
 {
 	if (inOwner == nullptr || dbJobKey == INVALID_DB_JOB_KEY)
 	{

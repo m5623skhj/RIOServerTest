@@ -42,7 +42,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacke
 bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2ProcedurePacket& packet)
 {
 	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
-	PACKET_ID packetId = ::PACKET_ID::SELECT_TEST_2;
+	PACKET_ID packetId = PACKET_ID::SELECT_TEST_2;
 	buffer << packetId << session.GetSessionId() << packet.id;
 
 	DBClient::GetInstance().CallProcedure(buffer);

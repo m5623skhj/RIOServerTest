@@ -11,7 +11,7 @@
 
 class RIOTestServer;
 class RIOTestSession;
-class IPacket;
+class IGameAndClientPacket;
 
 struct IOContext : RIO_BUF
 {
@@ -59,9 +59,9 @@ public:
 
 public:
 	void SendPacket(NetBuffer& packet);
-	void SendPacket(IPacket& packet);
+	void SendPacket(IGameAndClientPacket& packet);
 	void SendPacketAndDisconnect(NetBuffer& packet);
-	void SendPacketAndDisconnect(IPacket& packet);
+	void SendPacketAndDisconnect(IGameAndClientPacket& packet);
 	void Disconnect();
 
 private:
