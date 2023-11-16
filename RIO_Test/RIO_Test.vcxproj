@@ -153,6 +153,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RIOTestServer.cpp" />
     <ClCompile Include="RIOTestSession.cpp" />
+    <ClCompile Include="StartDBJob.cpp" />
     <ClCompile Include="TestDBJob.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +174,7 @@
     <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="RIOTestServer.h" />
     <ClInclude Include="RIOTestSession.h" />
+    <ClInclude Include="StartDBJob.h" />
     <ClInclude Include="TestDBJob.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

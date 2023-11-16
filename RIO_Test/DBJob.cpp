@@ -5,6 +5,8 @@
 #include "DBClient.h"
 #include "EnumType.h"
 #include "Protocol.h"
+#include "DBJobUtil.h"
+#include "StartDBJob.h"
 
 #pragma region DBJob
 DBJob::DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
@@ -66,11 +68,12 @@ ERROR_CODE BatchedDBJob::AddDBJob(std::shared_ptr<DBJob> job)
 
 ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 {
-	CSerializationBuf& batchStartPacket = *CSerializationBuf::Alloc();
-	PACKET_ID packetId = PACKET_ID::BATCHED_DB_JOB;
-	UINT batchSize = static_cast<UINT>(jobList.size());
-	batchStartPacket << packetId << batchSize << dbJobKey;
-	//DBClient::GetInstance().SendPacketToFixedChannel(batchStartPacket, owner->GetSessionId());
+	DBJobStart dbJobStartPacket;
+	dbJobStartPacket.batchSize = static_cast<UINT>(jobList.size());
+	dbJobStartPacket.sessionId = owner.GetSessionId();
+
+	auto batchStartJob = MakeDBJob<DBJob_StartDBJob>(owner, dbJobStartPacket, dbJobKey);
+	DBClient::GetInstance().SendPacketToFixedChannel(*batchStartJob);
 
 	for (auto& job : jobList)
 	{

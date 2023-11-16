@@ -39,6 +39,12 @@
     <Filter Include="DBJob">
       <UniqueIdentifier>{6739a7af-e656-48b1-ac8d-29b244fda6f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DBJob\DBJobClass">
+      <UniqueIdentifier>{e26def02-6873-4431-9e6c-987bc2696b58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DBJob\UserDBJobs">
+      <UniqueIdentifier>{ca4f2c63-cc08-42a5-af4d-fd49e7d67ba0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RIOTestServer.cpp">
@@ -95,17 +101,20 @@
     <ClCompile Include="ProcedureReplyHandler.cpp">
       <Filter>DBClient</Filter>
     </ClCompile>
-    <ClCompile Include="DBJob.cpp">
-      <Filter>DBJob</Filter>
-    </ClCompile>
     <ClCompile Include="GlobalUtil.cpp">
       <Filter>etc</Filter>
     </ClCompile>
-    <ClCompile Include="TestDBJob.cpp">
-      <Filter>DBJob</Filter>
+    <ClCompile Include="DBJob.cpp">
+      <Filter>DBJob\DBJobClass</Filter>
     </ClCompile>
     <ClCompile Include="DBJobUtil.cpp">
-      <Filter>DBJob</Filter>
+      <Filter>DBJob\DBJobClass</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDBJob.cpp">
+      <Filter>DBJob\UserDBJobs</Filter>
+    </ClCompile>
+    <ClCompile Include="StartDBJob.cpp">
+      <Filter>DBJob\UserDBJobs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,17 +160,20 @@
     <ClInclude Include="ProcedureReplyHandler.h">
       <Filter>DBClient</Filter>
     </ClInclude>
-    <ClInclude Include="DBJob.h">
-      <Filter>DBJob</Filter>
-    </ClInclude>
     <ClInclude Include="GlobalUtil.h">
       <Filter>etc</Filter>
     </ClInclude>
-    <ClInclude Include="TestDBJob.h">
-      <Filter>DBJob</Filter>
+    <ClInclude Include="DBJob.h">
+      <Filter>DBJob\DBJobClass</Filter>
     </ClInclude>
     <ClInclude Include="DBJobUtil.h">
-      <Filter>DBJob</Filter>
+      <Filter>DBJob\DBJobClass</Filter>
+    </ClInclude>
+    <ClInclude Include="TestDBJob.h">
+      <Filter>DBJob\UserDBJobs</Filter>
+    </ClInclude>
+    <ClInclude Include="StartDBJob.h">
+      <Filter>DBJob\UserDBJobs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

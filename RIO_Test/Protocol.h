@@ -197,9 +197,9 @@ public:
 	GET_PACKET_SIZE();
 
 public:
+	//DBJobKey jobKey = INVALID_DB_JOB_KEY;
 	SessionId sessionId = INVALID_SESSION_ID;
 	UINT batchSize = 0;
-	DBJobKey jobKey = INVALID_DB_JOB_KEY;
 };
 
 class DBJobReply : public IGameAndDBPacket
@@ -209,7 +209,7 @@ public:
 	GET_PACKET_SIZE();
 
 public:
-	DBJobKey jobKey = UINT64_MAX;
+	DBJobKey jobKey = INVALID_DB_JOB_KEY;
 	bool isSuccessed = false;
 };
 
