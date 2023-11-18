@@ -45,6 +45,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Logger">
+      <UniqueIdentifier>{c0638793-3d2b-42d4-bba4-a448ae555e71}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RIOTestServer.cpp">
@@ -116,6 +119,9 @@
     <ClCompile Include="StartDBJob.cpp">
       <Filter>DBJob\UserDBJobs</Filter>
     </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Logger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -174,6 +180,9 @@
     </ClInclude>
     <ClInclude Include="StartDBJob.h">
       <Filter>DBJob\UserDBJobs</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Logger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
