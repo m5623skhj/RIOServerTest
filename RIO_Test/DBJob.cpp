@@ -29,7 +29,7 @@ bool DBJob::ExecuteJob(DBJobKey batchDBJobKey)
 	{
 		return false;
 	}
-	*jobKeyPosition = batchDBJobKey;
+	*((long long*)(jobKeyPosition)) = *(long long*)batchDBJobKey;
 
 	DBClient::GetInstance().SendPacketToFixedChannel(*this);
 	return true;
