@@ -106,6 +106,11 @@ bool RIOTestServer::SetSocketOption()
 void RIOTestServer::StopServer()
 {
 	closesocket(listenSocket);
+	serverStop = true;
+	for (auto& thread : workerThreads)
+	{
+		thread.join();
+	}
 
 	for (int i = 0; i < numOfWorkerThread; ++i)
 	{
@@ -301,6 +306,11 @@ void RIOTestServer::Worker(BYTE inThreadId)
 
 	while (true)
 	{
+		if (serverStop == true)
+		{
+			break;
+		}
+
 		ZeroMemory(rioResults, sizeof(rioResults));
 
 		numOfResults = rioFunctionTable.RIODequeueCompletion(rioCQList[inThreadId], rioResults, MAX_RIO_RESULT);

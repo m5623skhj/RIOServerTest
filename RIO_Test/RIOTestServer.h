@@ -75,6 +75,7 @@ private:
 	std::vector<std::thread> workerThreads;
 	
 	const float sessionRatioInThread = 50.0f;
+	bool serverStop = false;
 #pragma endregion thread
 
 #pragma region rio
