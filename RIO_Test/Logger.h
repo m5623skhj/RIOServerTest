@@ -2,15 +2,24 @@
 #include <thread>
 #include <mutex>
 #include <queue>
+#include <chrono>
+#include <string>
+
+class Logger;
 
 class LogBase
 {
+	friend Logger;
+
 public:
-	LogBase() {}
-	virtual ~LogBase() {}
+	LogBase();
+	virtual ~LogBase();
 
 private:
+	void SetLogTime();
 
+private:
+	std::string loggingTime;
 };
 
 class Logger
