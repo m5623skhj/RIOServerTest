@@ -9,17 +9,12 @@
 #include "StartDBJob.h"
 
 #pragma region DBJob
-DBJob::DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
+DBJob::DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet)
 	: owner(inOwner)
 {
-	if (dbJobKey == INVALID_DB_JOB_KEY)
-	{
-		printf("Invalid db job parameter");
-		g_Dump.Crash();
-	}
-
 	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
-	buffer << dbJobKey;
+	jobKeyPosition = buffer.GetWriteBufferPtr();
+	buffer.MoveWritePos(sizeof(DBJobKey));
 	packet.PacketToBuffer(buffer);
 }
 
@@ -28,12 +23,13 @@ DBJob::~DBJob()
 	CSerializationBuf::Free(jobSPBuffer);
 }
 
-bool DBJob::ExecuteJob()
+bool DBJob::ExecuteJob(DBJobKey batchDBJobKey)
 {
-	if (jobSPBuffer == nullptr)
+	if (jobSPBuffer == nullptr || jobKeyPosition == nullptr)
 	{
 		return false;
 	}
+	*jobKeyPosition = batchDBJobKey;
 
 	DBClient::GetInstance().SendPacketToFixedChannel(*this);
 	return true;
@@ -72,12 +68,12 @@ ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 	dbJobStartPacket.batchSize = static_cast<UINT>(jobList.size());
 	dbJobStartPacket.sessionId = owner.GetSessionId();
 
-	auto batchStartJob = MakeDBJob<DBJob_StartDBJob>(owner, dbJobStartPacket, dbJobKey);
+	auto batchStartJob = MakeDBJob<DBJob_StartDBJob>(owner, dbJobStartPacket);
 	DBClient::GetInstance().SendPacketToFixedChannel(*batchStartJob);
 
 	for (auto& job : jobList)
 	{
-		job->ExecuteJob();
+		job->ExecuteJob(dbJobKey);
 	}
 
 	return ERROR_CODE::SUCCESS;

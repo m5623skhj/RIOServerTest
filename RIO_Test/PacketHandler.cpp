@@ -41,7 +41,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacke
 	// 어차피 batchJob에 항상 종속된 값이니까, CSerializationBuffer를 상속 받던가 해서
 	// DBJobKey 자리를 비워두고 먼저 패킷을 쌓아놓은 다음
 	// 이후에 DBJobKey를 채우는 방향으로 하면 어떨까 싶음
-	auto job = MakeDBJob<DBJob_test>(session, t, batchJob->GetDBJobKey());
+	auto job = MakeDBJob<DBJob_test>(session, t);
 	batchJob->AddDBJob(job);
 	batchJob->ExecuteBatchJob();
 

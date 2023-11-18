@@ -17,7 +17,7 @@ class DBJob
 
 public:
 	DBJob() = delete;
-	explicit DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey);
+	explicit DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet);
 	virtual ~DBJob();
 
 public:
@@ -25,7 +25,7 @@ public:
 	virtual void OnRollback() = 0;
 
 public:
-	bool ExecuteJob();
+	bool ExecuteJob(DBJobKey batchDBJobKey);
 	CSerializationBuf* GetJobBuffer();
 
 private:
@@ -33,6 +33,7 @@ private:
 
 private:
 	CSerializationBuf* jobSPBuffer = nullptr;
+	char* jobKeyPosition = nullptr;
 };
 
 class BatchedDBJob

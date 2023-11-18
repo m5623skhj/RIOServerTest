@@ -1,8 +1,8 @@
 #include "PreCompile.h"
 #include "TestDBJob.h"
 
-DBJob_test::DBJob_test(RIOTestSession& inOwner, IGameAndDBPacket& packet, DBJobKey dbJobKey)
-	: DBJob(inOwner, packet, dbJobKey)
+DBJob_test::DBJob_test(RIOTestSession& inOwner, IGameAndDBPacket& packet)
+	: DBJob(inOwner, packet)
 {
 
 }
