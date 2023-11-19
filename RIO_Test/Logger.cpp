@@ -1,7 +1,6 @@
 #include "PreCompile.h"
 #include "Logger.h"
 #include "RIOTestServer.h"
-#include <list>
 
 LogBase::LogBase()
 {
@@ -51,8 +50,9 @@ Logger& Logger::GetInstance()
 
 void Logger::RunLoggerThread()
 {
-	loggerEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
-	if (loggerEventHandle == NULL)
+	loggerEventHandles[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
+	loggerEventHandles[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if (loggerEventHandles[0] == NULL || loggerEventHandles[1] == NULL)
 	{
 		std::cout << "Logger event handle is invalid" << std::endl;
 		g_Dump.Crash();
@@ -64,32 +64,20 @@ void Logger::RunLoggerThread()
 void Logger::Worker()
 {
 	std::list<LogBase> waitingLogList;
+
 	while (true)
 	{
-		if (WaitForSingleObject(loggerEventHandle, INFINITE) == WAIT_FAILED)
+		auto result = WaitForMultipleObjects(2, loggerEventHandles, FALSE, INFINITE);
+		if (result == WAIT_OBJECT_0)
 		{
-			std::cout << "WaitForSingleObject wait failed in logger thread" << std::endl;
-			g_Dump.Crash();
+			WriteLogImpl(waitingLogList);
 		}
-
+		else if (result == WAIT_OBJECT_0 + 1)
 		{
-			std::lock_guard<std::mutex> guardLock(logQueueLock);
+			// 10초간 일단 대기해봄
+			Sleep(10000);
 
-			size_t restSize = logWaitingQueue.size();
-			while (restSize > 0)
-			{
-				waitingLogList.push_back(std::move(logWaitingQueue.front()));
-			}
-		}
-
-		size_t logSize = waitingLogList.size();
-		for (auto& logObject : waitingLogList)
-		{
-			WriteLogToFile(logObject);
-		}
-
-		if (stopThread == true)
-		{
+			WriteLogImpl(waitingLogList);
 			break;
 		}
 	}
@@ -97,10 +85,28 @@ void Logger::Worker()
 
 void Logger::StopLoggerThread()
 {
-	stopThread = true;
-	SetEvent(loggerEventHandle);
+	SetEvent(loggerEventHandles[1]);
 
 	loggerThread.join();
+}
+
+void Logger::WriteLogImpl(std::list<LogBase>& waitingLogList)
+{
+	{
+		std::lock_guard<std::mutex> guardLock(logQueueLock);
+
+		size_t restSize = logWaitingQueue.size();
+		while (restSize > 0)
+		{
+			waitingLogList.push_back(std::move(logWaitingQueue.front()));
+		}
+	}
+
+	size_t logSize = waitingLogList.size();
+	for (auto& logObject : waitingLogList)
+	{
+		WriteLogToFile(logObject);
+	}
 }
 
 void Logger::WriteLog(LogBase& logObject)
@@ -110,7 +116,7 @@ void Logger::WriteLog(LogBase& logObject)
 	std::lock_guard<std::mutex> guardLock(logQueueLock);
 	logWaitingQueue.push(logObject);
 	
-	SetEvent(loggerEventHandle);
+	SetEvent(loggerEventHandles[0]);
 }
 
 void Logger::WriteLogToFile(LogBase& logObject)

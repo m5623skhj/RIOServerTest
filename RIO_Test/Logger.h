@@ -4,6 +4,7 @@
 #include <queue>
 #include <chrono>
 #include <string>
+#include <list>
 
 class Logger;
 
@@ -38,9 +39,13 @@ public:
 	void StopLoggerThread();
 
 private:
+	void WriteLogImpl(std::list<LogBase>& waitingLogList);
+
+private:
 	std::thread loggerThread;
-	HANDLE loggerEventHandle = INVALID_HANDLE_VALUE;
-	bool stopThread = false;
+	// 0. LogginHandle
+	// 1. StopHandle
+	HANDLE loggerEventHandles[2];
 #pragma endregion Thread
 
 #pragma region LogWaitingQueue
