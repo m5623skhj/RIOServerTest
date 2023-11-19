@@ -2,14 +2,13 @@
 #include "Logger.h"
 #include "RIOTestServer.h"
 
-LogBase::LogBase()
+nlohmann::json LogBase::ObjectToJsonImpl()
 {
+	nlohmann::json logJsonObject;
+	logJsonObject["LogTime"] = loggingTime;
+	logJsonObject["Log"] = ObjectToJson();
 
-}
-
-LogBase::~LogBase()
-{
-
+	return logJsonObject;
 }
 
 void LogBase::SetLogTime()
@@ -34,12 +33,38 @@ void LogBase::SetLogTime()
 
 Logger::Logger()
 {
+	for (int i = 0; i < 2; ++i)
+	{
+		loggerEventHandles[i] = NULL;
+	}
 
+	const auto now = std::chrono::system_clock::now();
+	std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+	std::tm utcTime;
+
+	auto error = gmtime_s(&utcTime, &currentTime);
+	if (error != 0)
+	{
+		std::cout << "Error in gmtime_s() : " << error << std::endl;
+		g_Dump.Crash();
+	}
+
+	char buffer[80];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H", &utcTime);
+
+	std::string fileName = std::string("log_") + buffer + ".txt"; // 파일 이름 생성
+
+	logFileStream.open(fileName, std::ios::app);
+	if (!logFileStream.is_open()) 
+	{
+		std::cout << "Logger : Failed to open file " << fileName << std::endl;
+		g_Dump.Crash();
+	}
 }
 
 Logger::~Logger()
 {
-
+	logFileStream.close();
 }
 
 Logger& Logger::GetInstance()
@@ -63,7 +88,7 @@ void Logger::RunLoggerThread()
 
 void Logger::Worker()
 {
-	std::list<LogBase> waitingLogList;
+	std::list<std::shared_ptr<LogBase>> waitingLogList;
 
 	while (true)
 	{
@@ -80,6 +105,12 @@ void Logger::Worker()
 			WriteLogImpl(waitingLogList);
 			break;
 		}
+		else
+		{
+			g_Dump.Crash();
+		}
+
+		waitingLogList.clear();
 	}
 }
 
@@ -90,7 +121,7 @@ void Logger::StopLoggerThread()
 	loggerThread.join();
 }
 
-void Logger::WriteLogImpl(std::list<LogBase>& waitingLogList)
+void Logger::WriteLogImpl(std::list<std::shared_ptr<LogBase>>& waitingLogList)
 {
 	{
 		std::lock_guard<std::mutex> guardLock(logQueueLock);
@@ -109,9 +140,9 @@ void Logger::WriteLogImpl(std::list<LogBase>& waitingLogList)
 	}
 }
 
-void Logger::WriteLog(LogBase& logObject)
+void Logger::WriteLog(std::shared_ptr<LogBase> logObject)
 {
-	logObject.SetLogTime();
+	logObject->SetLogTime();
 
 	std::lock_guard<std::mutex> guardLock(logQueueLock);
 	logWaitingQueue.push(logObject);
@@ -119,7 +150,8 @@ void Logger::WriteLog(LogBase& logObject)
 	SetEvent(loggerEventHandles[0]);
 }
 
-void Logger::WriteLogToFile(LogBase& logObject)
+void Logger::WriteLogToFile(std::shared_ptr<LogBase> logObject)
 {
-	// Write to file like json object
+	auto logJson = logObject->ObjectToJsonImpl();
+	logFileStream << logJson << '\n';
 }

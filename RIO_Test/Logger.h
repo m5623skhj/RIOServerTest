@@ -5,18 +5,36 @@
 #include <chrono>
 #include <string>
 #include <list>
+#include "nlohmann/json.hpp"
+#include <memory>
+#include <fstream>
 
 class Logger;
+
+#define OBJECT_TO_JSON_LOG(...)\
+    virtual nlohmann::json ObjectToJson() override {\
+        nlohmann::json jsonObject;\
+        { __VA_ARGS__ }\
+        return jsonObject;\
+    }\
+
+#define SET_LOG_ITEM(logObject){\
+    jsonObject[#logObject] = logObject;\
+}
 
 class LogBase
 {
 	friend Logger;
 
 public:
-	LogBase();
-	virtual ~LogBase();
+	LogBase() = default;
+	virtual ~LogBase() = default;
+
+public:
+	virtual nlohmann::json ObjectToJson() = 0;
 
 private:
+	nlohmann::json ObjectToJsonImpl();
 	void SetLogTime();
 
 private:
@@ -39,7 +57,7 @@ public:
 	void StopLoggerThread();
 
 private:
-	void WriteLogImpl(std::list<LogBase>& waitingLogList);
+	void WriteLogImpl(std::list<std::shared_ptr<LogBase>>& waitingLogList);
 
 private:
 	std::thread loggerThread;
@@ -50,13 +68,15 @@ private:
 
 #pragma region LogWaitingQueue
 public:
-	void WriteLog(LogBase& logObject);
+	void WriteLog(std::shared_ptr<LogBase> logObject);
 
 private:
-	void WriteLogToFile(LogBase& logObject);
+	void WriteLogToFile(std::shared_ptr<LogBase> logObject);
 
 private:
 	std::mutex logQueueLock;
-	std::queue<LogBase> logWaitingQueue;
+	std::queue<std::shared_ptr<LogBase>> logWaitingQueue;
+
+	std::ofstream logFileStream;
 #pragma endregion LogWaitingQueue
 };
