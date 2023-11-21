@@ -4,6 +4,7 @@
 #include "NetServerSerializeBuffer.h"
 #include "PacketManager.h"
 #include "RIOTestServer.h"
+#include "DBJob.h"
 
 void ProcedureReplyHandler::Initialize()
 {
@@ -74,17 +75,25 @@ bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& 
 	return true;
 }
 
+// DBJobReply는 항상 마지막에 온다고 가정함
+// 모든 프로시저가 JobKey를 가지고 있으므로, 해당 패킷이 오면 바로 OnCommit / OnRollback을 호출
 bool ProcedureReplyHandler::AssemblePacket(DBJobReply& packet, OUT CSerializationBuf& recvPacket)
 {
-	SessionId ownerSessionId;
-	recvPacket >> ownerSessionId;
-	auto session = RIOTestServer::GetInst().GetSession(ownerSessionId);
-	if (session == nullptr)
+	auto batchJob = DBJobManager::GetInst().GetRegistedDBJob(packet.jobKey);
+	if (batchJob == nullptr)
 	{
-		return false;
+		std::cout << "AssemblePacket() : Invalid jobkey" << std::endl;
+		return true;
 	}
 
+	if (packet.isSuccessed == false)
+	{
+		std::cout << "AssemblePacket() : DB job was failed" << std::endl;
+		batchJob->OnRollback();
 
+		return true;
+	}
 
+	batchJob->OnCommit();
 	return true;
 }
