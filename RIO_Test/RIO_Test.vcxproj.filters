@@ -122,6 +122,9 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Logger</Filter>
     </ClCompile>
+    <ClCompile Include="LogClass.cpp">
+      <Filter>Logger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RIOTestServer.h">
@@ -182,6 +185,9 @@
       <Filter>DBJob\UserDBJobs</Filter>
     </ClInclude>
     <ClInclude Include="Logger.h">
+      <Filter>Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="LogClass.h">
       <Filter>Logger</Filter>
     </ClInclude>
   </ItemGroup>

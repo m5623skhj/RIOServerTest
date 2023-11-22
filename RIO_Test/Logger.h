@@ -5,41 +5,9 @@
 #include <chrono>
 #include <string>
 #include <list>
-#include "nlohmann/json.hpp"
 #include <memory>
 #include <fstream>
-
-class Logger;
-
-#define OBJECT_TO_JSON_LOG(...)\
-    virtual nlohmann::json ObjectToJson() override {\
-        nlohmann::json jsonObject;\
-        { __VA_ARGS__ }\
-        return jsonObject;\
-    }\
-
-#define SET_LOG_ITEM(logObject){\
-    jsonObject[#logObject] = logObject;\
-}
-
-class LogBase
-{
-	friend Logger;
-
-public:
-	LogBase() = default;
-	virtual ~LogBase() = default;
-
-public:
-	virtual nlohmann::json ObjectToJson() = 0;
-
-private:
-	nlohmann::json ObjectToJsonImpl();
-	void SetLogTime();
-
-private:
-	std::string loggingTime;
-};
+#include "LogClass.h"
 
 class Logger
 {
@@ -80,3 +48,12 @@ private:
 	std::ofstream logFileStream;
 #pragma endregion LogWaitingQueue
 };
+
+namespace LogHelper
+{
+	template<typename T, typename = std::enable_if_t<std::is_base_of_v<LogBase, T>>>
+	std::shared_ptr<T> MakeLogObject()
+	{
+		return std::make_shared<T>();
+	}
+}
