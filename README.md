@@ -73,9 +73,9 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
 
 4.1. 로그
 * LogBase를 상속 받은 클래스를 정의하고, 아래 그림과 같이 로깅할 항목들을 나열
-![image](https://github.com/m5623skhj/RIOServerTest/assets/42509418/08b08090-b160-4c16-a3b8-e6f1b719ae6e)
-
 * 이후 Logger의 Instance에 WriteLog를 하면 현재 시간(년-월-일_시/UTC)에 해당하는 파일에다 로그 객체를 json 형태로 풀어서 기록함
+
+![image](https://github.com/m5623skhj/RIOServerTest/assets/42509418/08b08090-b160-4c16-a3b8-e6f1b719ae6e)
 
 ---
 
