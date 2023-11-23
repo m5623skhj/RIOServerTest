@@ -42,14 +42,6 @@ DBPacketReplyHandler ProcedureReplyHandler::GetPacketHandler(UINT packetId)
 	return iter->second;
 }
 
-bool ProcedureReplyHandler::AssemblePacket(CallTestProcedurePacketReply& packet, OUT CSerializationBuf& recvPacket)
-{
-	UNREFERENCED_PARAMETER(packet);
-	UNREFERENCED_PARAMETER(recvPacket);
-
-	return true;
-}
-
 bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& packet, OUT CSerializationBuf& recvPacket)
 {
 	SessionId ownerSessionId;
@@ -75,8 +67,6 @@ bool ProcedureReplyHandler::AssemblePacket(CallSelectTest2ProcedurePacketReply& 
 	return true;
 }
 
-// DBJobReply는 항상 마지막에 온다고 가정함
-// 모든 프로시저가 JobKey를 가지고 있으므로, 해당 패킷이 오면 바로 OnCommit / OnRollback을 호출
 bool ProcedureReplyHandler::AssemblePacket(DBJobReply& packet, OUT CSerializationBuf& recvPacket)
 {
 	auto batchJob = DBJobManager::GetInst().GetRegistedDBJob(packet.jobKey);

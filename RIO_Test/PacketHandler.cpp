@@ -7,6 +7,7 @@
 #include "LanServerSerializeBuf.h"
 #include "TestDBJob.h"
 #include "DBJobUtil.h"
+#include "DBHelper.h"
 
 bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& packet)
 {
@@ -30,31 +31,35 @@ bool PacketManager::HandlePacket(RIOTestSession& session, EchoStringPacket& pack
 	return true;
 }
 
-bool PacketManager::HandlePacket(RIOTestSession& session, CallTestProcedurePacket& packet)
+bool PacketManager::HandlePacket(RIOTestSession& session, TestProcedurePacket& packet)
 {
 	test t;
 	t.id3 = packet.id3;
 	t.teststring = packet.testString;
+
+	test t_rollback;
+	t_rollback.id3 = -1;
+	t_rollback.teststring = L"rollbackString";
 
 	auto batchJob = MakeBatchedDBJob(session);
 	// 매번 MakeDBJob() 할 때 GetDBJobKey()를 호출해줘야 하니까 불편한거 같음
 	// 어차피 batchJob에 항상 종속된 값이니까, CSerializationBuffer를 상속 받던가 해서
 	// DBJobKey 자리를 비워두고 먼저 패킷을 쌓아놓은 다음
 	// 이후에 DBJobKey를 채우는 방향으로 하면 어떨까 싶음
-	auto job = MakeDBJob<DBJob_test>(session, t);
+	auto job = MakeDBJob<DBJob_test, test>(session, t, t_rollback);
 	batchJob->AddDBJob(job);
 	batchJob->ExecuteBatchJob();
 
 	return true;
 }
 
-bool PacketManager::HandlePacket(RIOTestSession& session, CallSelectTest2ProcedurePacket& packet)
+bool PacketManager::HandlePacket(RIOTestSession& session, SelectTest2ProcedurePacket& packet)
 {
-	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
-	PACKET_ID packetId = PACKET_ID::SELECT_TEST_2;
-	buffer << packetId << session.GetSessionId() << packet.id;
+	CallSelectTest2ProcedurePacket dbPacket;
+	dbPacket.id = packet.id;
+	dbPacket.ownerSessionId = session.GetSessionId();
 
-	//DBClient::GetInstance().CallProcedure(buffer);
+	DBClient::GetInstance().SendPacketToFixedChannel(dbPacket, session.GetSessionId());
 
 	return true;
 }

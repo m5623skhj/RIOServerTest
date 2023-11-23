@@ -4,6 +4,8 @@
 #include "NetServerSerializeBuffer.h"
 #include "Broadcaster.h"
 #include "DeadlockChecker.h"
+#include "Logger.h"
+#include "LogClass.h"
 
 #include "BuildConfig.h"
 
@@ -11,12 +13,27 @@ using namespace std;
 
 void PrintError(const string_view errorFunctionName)
 {
-	cout << errorFunctionName << "() failed " << GetLastError() << endl;
+	DWORD errorCode = GetLastError();
+	cout << errorFunctionName << "() failed " << errorCode << endl;
+
+	auto log = LogHelper::MakeLogObject<ServerLog>();
+	log->logString = errorFunctionName;
+	log->logString += "() failed";
+	log->SetLastErrorCode(errorCode);
+
+	Logger::GetInstance().WriteLog(log);
 }
 
 void PrintError(const string_view errorFunctionName, DWORD errorCode)
 {
 	cout << errorFunctionName << "() failed " << errorCode << endl;
+
+	auto log = LogHelper::MakeLogObject<ServerLog>();
+	log->logString = errorFunctionName;
+	log->logString += "() failed";
+	log->SetLastErrorCode(errorCode);
+
+	Logger::GetInstance().WriteLog(log);
 }
 
 RIOTestServer::RIOTestServer()
@@ -234,7 +251,7 @@ IO_POST_ERROR RIOTestServer::SendIOCompleted(ULONG transferred, RIOTestSession& 
 
 void RIOTestServer::InvalidIOCompleted(IOContext& context)
 {
-	cout << "IO context is invalid " << static_cast<int>(context.ioType) << endl;
+	PrintError("IO context is invalid " + static_cast<int>(context.ioType));
 
 	auto session = GetSession(context.ownerSessionId);
 	if (session != nullptr)

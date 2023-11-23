@@ -4,20 +4,10 @@
 #include "RIOTestSession.h"
 #include "DBClient.h"
 #include "EnumType.h"
-#include "Protocol.h"
 #include "DBJobUtil.h"
 #include "StartDBJob.h"
 
 #pragma region DBJob
-DBJob::DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet)
-	: owner(inOwner)
-{
-	CSerializationBuf& buffer = *CSerializationBuf::Alloc();
-	jobKeyPosition = buffer.GetWriteBufferPtr();
-	buffer.MoveWritePos(sizeof(DBJobKey));
-	packet.PacketToBuffer(buffer);
-}
-
 DBJob::~DBJob()
 {
 	CSerializationBuf::Free(jobSPBuffer);
@@ -38,6 +28,16 @@ bool DBJob::ExecuteJob(DBJobKey batchDBJobKey)
 CSerializationBuf* DBJob::GetJobBuffer()
 {
 	return jobSPBuffer;
+}
+
+IGameAndDBPacket* DBJob::GetRollbackItem()
+{
+	if (forRollback == nullptr)
+	{
+		return nullptr;
+	}
+
+	return forRollback.get();
 }
 
 BatchedDBJob::BatchedDBJob(RIOTestSession& inOwner)
@@ -68,7 +68,9 @@ ERROR_CODE BatchedDBJob::ExecuteBatchJob()
 	dbJobStartPacket.batchSize = static_cast<UINT>(jobList.size());
 	dbJobStartPacket.sessionId = owner.GetSessionId();
 
-	auto batchStartJob = MakeDBJob<DBJob_StartDBJob>(owner, dbJobStartPacket);
+	DBJobStart emptyRollback;
+
+	auto batchStartJob = MakeDBJob<DBJob_StartDBJob, DBJobStart>(owner, dbJobStartPacket, emptyRollback);
 	DBClient::GetInstance().SendPacketToFixedChannel(*batchStartJob);
 
 	for (auto& job : jobList)

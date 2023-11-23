@@ -5,6 +5,8 @@
 #include "ProcedureReplyHandler.h"
 #include <memory>
 #include "DBJob.h"
+#include "Protocol.h"
+#include "DBHelper.h"
 
 DBClient::DBClient()
 {
@@ -79,10 +81,13 @@ void DBClient::OnDisconnect()
 //	CMultiLanClient::SendPacket(&packet);
 //}
 //
-//void DBClient::SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId)
-//{
-//	CMultiLanClient::SendPacket(&packet, sessionId);
-//}
+void DBClient::SendPacketToFixedChannel(IGameAndDBPacket& packet, UINT64 sessionId)
+{
+	auto buffer = DBHelper::MakeProcedurePacket(packet.GetPacketId());
+	packet.PacketToBuffer(buffer);
+
+	CMultiLanClient::SendPacket(&buffer, sessionId);
+}
 
 void DBClient::SendPacketToFixedChannel(DBJob& dbJob)
 {

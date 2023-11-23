@@ -2,10 +2,12 @@
 #include <memory>
 #include "DBJob.h"
 
-template<typename T, typename = std::enable_if_t<std::is_base_of_v<DBJob, T>>>
-std::shared_ptr<T> MakeDBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet)
+template<
+	typename T, typename = std::enable_if_t<std::is_base_of_v<DBJob, T>>,
+	typename U, typename = std::enable_if_t<std::is_base_of_v<IGameAndDBPacket, U>>>
+std::shared_ptr<T> MakeDBJob(RIOTestSession& inOwner, U& packet, U& forRollback)
 {
-	return std::make_shared<T>(inOwner, packet);
+	return std::make_shared<T>(inOwner, packet, forRollback);
 }
 
 std::shared_ptr<BatchedDBJob> MakeBatchedDBJob(RIOTestSession& inOwner);

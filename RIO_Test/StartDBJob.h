@@ -5,7 +5,7 @@ class DBJob_StartDBJob : public DBJob
 {
 public:
 	DBJob_StartDBJob() = delete;
-	explicit DBJob_StartDBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet);
+	explicit DBJob_StartDBJob(RIOTestSession& inOwner, DBJobStart& packet, DBJobStart& rollbackPacket);
 	virtual ~DBJob_StartDBJob() {}
 
 	virtual void OnCommit() override;

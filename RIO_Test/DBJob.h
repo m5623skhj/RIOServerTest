@@ -7,9 +7,10 @@
 #include <mutex>
 #include "LanServerSerializeBuf.h"
 #include "RIOTestSession.h"
+#include "Protocol.h"
+#include <optional>
 
 class RIOTestSession;
-class IGameAndDBPacket;
 
 class DBJob
 {
@@ -17,7 +18,18 @@ class DBJob
 
 public:
 	DBJob() = delete;
-	explicit DBJob(RIOTestSession& inOwner, IGameAndDBPacket& packet);
+	template <typename T, typename = std::enable_if_t<std::is_base_of_v<IGameAndDBPacket, T>>>
+	explicit DBJob(RIOTestSession& inOwner, T& packet, T& rollbackPacket)
+		: owner(inOwner)
+	{
+		CSerializationBuf& buffer = *CSerializationBuf::Alloc();
+		buffer << packet.GetPacketId();
+		jobKeyPosition = buffer.GetWriteBufferPtr();
+		buffer.MoveWritePos(sizeof(DBJobKey));
+		packet.PacketToBuffer(buffer);
+
+		forRollback = std::make_shared<T>(rollbackPacket);
+	}
 	virtual ~DBJob();
 
 public:
@@ -34,6 +46,12 @@ private:
 private:
 	CSerializationBuf* jobSPBuffer = nullptr;
 	char* jobKeyPosition = nullptr;
+
+protected:
+	IGameAndDBPacket* GetRollbackItem();
+
+private:
+	std::shared_ptr<IGameAndDBPacket> forRollback = nullptr;
 };
 
 class BatchedDBJob

@@ -141,6 +141,7 @@
     <ClCompile Include="..\..\..\..\Desktop\Common\SerializationBuffer.cpp" />
     <ClCompile Include="Broadcaster.cpp" />
     <ClCompile Include="DBClient.cpp" />
+    <ClCompile Include="DBHelper.cpp" />
     <ClCompile Include="DBJob.cpp" />
     <ClCompile Include="DBJobUtil.cpp" />
     <ClCompile Include="DeadlockChecker.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Broadcaster.h" />
     <ClInclude Include="BuildConfig.h" />
     <ClInclude Include="DBClient.h" />
+    <ClInclude Include="DBHelper.h" />
     <ClInclude Include="DBJob.h" />
     <ClInclude Include="DBJobUtil.h" />
     <ClInclude Include="DeadlockChecker.h" />

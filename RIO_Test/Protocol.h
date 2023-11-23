@@ -122,11 +122,9 @@ public:
 	char echoString[30];
 };
 
-class CallTestProcedurePacket : public IGameAndClientPacket
+class TestProcedurePacket : public IGameAndClientPacket
 {
 public:
-	CallTestProcedurePacket() = default;
-	~CallTestProcedurePacket() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS(id3, testString);
@@ -136,11 +134,9 @@ public:
 	std::wstring testString;
 };
 
-class CallSelectTest2ProcedurePacket : public IGameAndClientPacket
+class SelectTest2ProcedurePacket : public IGameAndClientPacket
 {
 public:
-	CallSelectTest2ProcedurePacket() = default;
-	~CallSelectTest2ProcedurePacket() = default;
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS(id);
@@ -193,7 +189,7 @@ public:
 class DBJobStart : public IGameAndDBPacket
 {
 public:
-	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB);
+	GET_PACKET_ID(PACKET_ID::GAME2DB_BATCHED_DB_JOB);
 	GET_PACKET_SIZE();
 
 public:
@@ -205,7 +201,7 @@ public:
 class DBJobReply : public IGameAndDBPacket
 {
 public:
-	GET_PACKET_ID(PACKET_ID::BATCHED_DB_JOB_RES);
+	GET_PACKET_ID(PACKET_ID::DB2GAME_BATCHED_DB_JOB);
 	GET_PACKET_SIZE();
 
 public:
@@ -213,17 +209,16 @@ public:
 	bool isSuccessed = false;
 };
 
-class CallTestProcedurePacketReply : public IGameAndDBPacket
+class CallSelectTest2ProcedurePacket : public IGameAndDBPacket
 {
 public:
-	CallTestProcedurePacketReply() = default;
-	~CallTestProcedurePacketReply() = default;
-	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET_REPLY);
+	GET_PACKET_ID(PACKET_ID::GAME2DB_SELECT_TEST_2);
 	GET_PACKET_SIZE();
-	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId);
+	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId, id);
 
 public:
 	SessionId ownerSessionId = INVALID_SESSION_ID;
+	long long id = 0;
 };
 
 class CallSelectTest2ProcedurePacketReply : public IGameAndDBPacket
@@ -231,7 +226,7 @@ class CallSelectTest2ProcedurePacketReply : public IGameAndDBPacket
 public:
 	CallSelectTest2ProcedurePacketReply() = default;
 	~CallSelectTest2ProcedurePacketReply() = default;
-	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET_REPLY);
+	GET_PACKET_ID(PACKET_ID::DB2GAME_SELECT_TEST_2);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId, no, testString);
 
@@ -244,7 +239,7 @@ public:
 class test : public IGameAndDBPacket
 {
 public:
-	GET_PACKET_ID(PACKET_ID::TEST);
+	GET_PACKET_ID(PACKET_ID::GAME2DB_TEST);
 	GET_PACKET_SIZE();
 	SET_PARAMETERS_TO_BUFFER_DB_PACKET(id3, teststring);
 
@@ -275,24 +270,24 @@ public:
 #define REGISTER_ALL_HANDLER()\
 	REGISTER_HANDLER(TestStringPacket)\
 	REGISTER_HANDLER(EchoStringPacket)\
-	REGISTER_HANDLER(CallTestProcedurePacket)\
-	REGISTER_HANDLER(CallSelectTest2ProcedurePacket)\
+	REGISTER_HANDLER(TestProcedurePacket)\
+	REGISTER_HANDLER(SelectTest2ProcedurePacket)\
 	REGISTER_HANDLER(Ping)\
 	REGISTER_HANDLER(RequestFileStream)\
 	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
 	DECLARE_HANDLE_PACKET(EchoStringPacket)\
-	DECLARE_HANDLE_PACKET(CallTestProcedurePacket)\
-	DECLARE_HANDLE_PACKET(CallSelectTest2ProcedurePacket)\
+	DECLARE_HANDLE_PACKET(TestProcedurePacket)\
+	DECLARE_HANDLE_PACKET(SelectTest2ProcedurePacket)\
 	DECLARE_HANDLE_PACKET(Ping)\
 	DECLARE_HANDLE_PACKET(RequestFileStream)\
 
 #define REGISTER_PACKET_LIST(){\
 	REGISTER_PACKET(TestStringPacket)\
 	REGISTER_PACKET(EchoStringPacket)\
-	REGISTER_PACKET(CallTestProcedurePacket)\
-	REGISTER_PACKET(CallSelectTest2ProcedurePacket)\
+	REGISTER_PACKET(TestProcedurePacket)\
+	REGISTER_PACKET(SelectTest2ProcedurePacket)\
 	REGISTER_PACKET(Ping)\
 	REGISTER_PACKET(RequestFileStream)\
 }
@@ -307,12 +302,10 @@ public:
 	static bool AssemblePacket(PacketType& packet, OUT CSerializationBuf& recvPacket);\
 
 #define REGISTER_ALL_DB_REPLY_HANDLER()\
-	REGISTER_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
 	REGISTER_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
 	REGISTER_DB_REPLY_HANDLER(DBJobReply)\
 
 #define DECLARE_ALL_DB_REPLY_HANDLER()\
-	DECLARE_DB_REPLY_HANDLER(CallTestProcedurePacketReply)\
 	DECLARE_DB_REPLY_HANDLER(CallSelectTest2ProcedurePacketReply)\
 	DECLARE_DB_REPLY_HANDLER(DBJobReply)\
 

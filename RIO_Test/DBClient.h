@@ -2,6 +2,8 @@
 #include "MultiLanClient.h"
 
 class DBJob;
+class IGameAndDBPacket;
+namespace DBHelper { class ProcedurePacket; }
 
 class DBClient : public CMultiLanClient
 {
@@ -34,7 +36,9 @@ public:
 public:
 	//void CallProcedure(CSerializationBuf& packet);
 	//void SendPacket(CSerializationBuf& packet);
-	//void SendPacketToFixedChannel(CSerializationBuf& packet, UINT64 sessionId);
+	// SELECT 결과가 필요한 경우 호출
+	void SendPacketToFixedChannel(IGameAndDBPacket& packet, UINT64 sessionId);
+	// SELECT 결과가 필요 없는 경우 호출
 	void SendPacketToFixedChannel(DBJob& dbJob);
 
 private:
