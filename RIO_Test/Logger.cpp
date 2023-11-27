@@ -101,6 +101,7 @@ void Logger::WriteLogImpl(std::list<std::shared_ptr<LogBase>>& waitingLogList)
 		while (restSize > 0)
 		{
 			waitingLogList.push_back(std::move(logWaitingQueue.front()));
+			logWaitingQueue.pop();
 		}
 	}
 
