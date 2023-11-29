@@ -19,23 +19,29 @@ void Broadcaster::BraodcastToAllSession(IGameAndClientPacket& packet)
 	}
 
 	*buffer << packet.GetPacketId();
+	std::list<SessionId> sessionIdList;
 	packet.PacketToBuffer(*buffer);
 	{
 		std::lock_guard<std::mutex> guardLock(sessionSetLock);
 		for (const auto& sessionId : sessionIdSet)
 		{
-			auto session = RIOTestServer::GetInst().GetSession(sessionId);
-			if (session == nullptr)
-			{
-				continue;
-			}
-			else if (session->IsReleasedSession() == true)
-			{
-				continue;
-			}
-
-			session->SendPacket(*buffer);
+			sessionIdList.push_back(sessionId);
 		}
+	}
+
+	for(const auto& sessionId : sessionIdList)
+	{
+		auto session = RIOTestServer::GetInst().GetSession(sessionId);
+		if (session == nullptr)
+		{
+			continue;
+		}
+		else if (session->IsReleasedSession() == true)
+		{
+			continue;
+		}
+
+		session->SendPacket(*buffer);
 	}
 	NetBuffer::Free(buffer);
 }
