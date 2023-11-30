@@ -42,10 +42,6 @@ bool PacketManager::HandlePacket(RIOTestSession& session, TestProcedurePacket& p
 	t_rollback.teststring = L"rollbackString";
 
 	auto batchJob = MakeBatchedDBJob(session);
-	// 매번 MakeDBJob() 할 때 GetDBJobKey()를 호출해줘야 하니까 불편한거 같음
-	// 어차피 batchJob에 항상 종속된 값이니까, CSerializationBuffer를 상속 받던가 해서
-	// DBJobKey 자리를 비워두고 먼저 패킷을 쌓아놓은 다음
-	// 이후에 DBJobKey를 채우는 방향으로 하면 어떨까 싶음
 	auto job = MakeDBJob<DBJob_test, test>(session, t, t_rollback);
 	batchJob->AddDBJob(job);
 	batchJob->ExecuteBatchJob();
