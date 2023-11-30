@@ -10,7 +10,6 @@
 
 using PacketId = unsigned int;
 
-#define GET_PACKET_SIZE() virtual int GetPacketSize() override { return sizeof(*this) - 8; }
 #define GET_PACKET_ID(packetId) virtual PacketId GetPacketId() const override { return static_cast<PacketId>(packetId); }
 
 #pragma region ForGameServerPacket
@@ -86,7 +85,6 @@ public:
 	virtual ~IPacket() = default;
 
 	virtual PacketId GetPacketId() const = 0;
-	virtual int GetPacketSize() = 0;
 };
 
 class IGameAndClientPacket : public IPacket
@@ -102,7 +100,6 @@ public:
 	TestStringPacket() = default;
 	~TestStringPacket() = default;
 	GET_PACKET_ID(PACKET_ID::TEST_STRING_PACKET);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS(testString);
 
 public:
@@ -115,7 +112,6 @@ public:
 	EchoStringPacket() = default;
 	~EchoStringPacket() = default;
 	GET_PACKET_ID(PACKET_ID::ECHO_STRING_PACEKT);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS(echoString);
 
 public:
@@ -126,7 +122,6 @@ class TestProcedurePacket : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::CALL_TEST_PROCEDURE_PACKET);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS(id3, testString);
 
 public:
@@ -138,7 +133,6 @@ class SelectTest2ProcedurePacket : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::CALL_SELECT_TEST_2_PROCEDURE_PACKET);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS(id);
 
 public:
@@ -149,28 +143,24 @@ class Ping : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::PING);
-	GET_PACKET_SIZE();
 };
 
 class Pong : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::PONG);
-	GET_PACKET_SIZE();
 };
 
 class RequestFileStream : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::REQUEST_FILE_STREAM);
-	GET_PACKET_SIZE();
 };
 
 class ResponseFileStream : public IGameAndClientPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::RESPONSE_FILE_STREAM);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS(fileStream);
 
 public:
@@ -190,7 +180,6 @@ class DBJobStart : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::GAME2DB_BATCHED_DB_JOB);
-	GET_PACKET_SIZE();
 
 public:
 	//DBJobKey jobKey = INVALID_DB_JOB_KEY;
@@ -202,7 +191,6 @@ class DBJobReply : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::DB2GAME_BATCHED_DB_JOB);
-	GET_PACKET_SIZE();
 
 public:
 	DBJobKey jobKey = INVALID_DB_JOB_KEY;
@@ -213,7 +201,6 @@ class CallSelectTest2ProcedurePacket : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::GAME2DB_SELECT_TEST_2);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId, id);
 
 public:
@@ -227,7 +214,6 @@ public:
 	CallSelectTest2ProcedurePacketReply() = default;
 	~CallSelectTest2ProcedurePacketReply() = default;
 	GET_PACKET_ID(PACKET_ID::DB2GAME_SELECT_TEST_2);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS_TO_BUFFER_DB_PACKET(ownerSessionId, no, testString);
 
 public:
@@ -240,7 +226,6 @@ class test : public IGameAndDBPacket
 {
 public:
 	GET_PACKET_ID(PACKET_ID::GAME2DB_TEST);
-	GET_PACKET_SIZE();
 	SET_PARAMETERS_TO_BUFFER_DB_PACKET(id3, teststring);
 
 public:

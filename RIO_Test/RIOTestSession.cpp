@@ -79,7 +79,9 @@ void RIOTestSession::SendPacketAndDisconnect(IGameAndClientPacket& packet)
 		return;
 	}
 
-	buffer->WriteBuffer((char*)&packet, packet.GetPacketSize());
+	*buffer << packet.GetPacketId();
+	packet.PacketToBuffer(*buffer);
+
 	SendPacket(*buffer);
 }
 
@@ -107,11 +109,6 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 	
 	auto packet = PacketManager::GetInst().MakePacket(packetId);
 	if (packet == nullptr)
-	{
-		return;
-	}
-
-	if (packet->GetPacketSize() < recvPacket.GetUseSize())
 	{
 		return;
 	}
