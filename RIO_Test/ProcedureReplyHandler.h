@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "Protocol.h"
-#include <map>
+#include <unordered_map>
 #include <any>
 
 class CSerializationBuf;
@@ -45,5 +45,5 @@ public:
 	DBPacketReplyHandler GetPacketHandler(UINT packetId);
 
 private:
-	std::map<UINT, DBPacketReplyHandler> packetHandlerMap;
+	std::unordered_map<UINT, DBPacketReplyHandler> packetHandlerMap;
 };

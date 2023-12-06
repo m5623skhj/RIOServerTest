@@ -2,7 +2,7 @@
 #include <MSWSock.h>
 #include <vector>
 #include <thread>
-#include <map>
+#include <unordered_map>
 #include "DefineType.h"
 #include "EnumType.h"
 #include "NetServerSerializeBuffer.h"
@@ -140,7 +140,7 @@ private:
 	FORCEINLINE void IOCountDecrement(RIOTestSession& session);
 
 private:
-	std::map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
+	std::unordered_map<SessionId, std::shared_ptr<RIOTestSession>> sessionMap;
 	SRWLOCK sessionMapLock;
 
 	SessionId nextSessionId = INVALID_SESSION_ID + 1;

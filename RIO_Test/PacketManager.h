@@ -3,7 +3,7 @@
 #include "Protocol.h"
 #include <functional>
 #include <any>
-#include <map>
+#include <unordered_map>
 #include "NetServerSerializeBuffer.h"
 
 class RIOTestSession;
@@ -57,8 +57,8 @@ public:
 		packetHandlerMap[packetType.GetPacketId()] = handler;
 	}
 
-	std::map<PacketId, PacketFactoryFunction> packetFactoryFunctionMap;
-	std::map<PacketId, PacketHandler> packetHandlerMap;
+	std::unordered_map<PacketId, PacketFactoryFunction> packetFactoryFunctionMap;
+	std::unordered_map<PacketId, PacketHandler> packetHandlerMap;
 
 #pragma region PacketHandler
 public:

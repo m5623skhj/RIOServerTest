@@ -3,7 +3,7 @@
 #include <memory>
 #include "EnumType.h"
 #include "DefineType.h"
-#include <map>
+#include <unordered_map>
 #include <mutex>
 #include "LanServerSerializeBuf.h"
 #include "RIOTestSession.h"
@@ -116,6 +116,6 @@ private:
 	std::atomic<DBJobKey> jobKey = 1;
 
 	// 관리의 용이성을 위해서 일반 DBJob도 BatchedDBJob에 넣어서 보냄
-	std::map<DBJobKey, std::shared_ptr<BatchedDBJob>> jobMap;
+	std::unordered_map<DBJobKey, std::shared_ptr<BatchedDBJob>> jobMap;
 	std::mutex jobMapLock;
 };
