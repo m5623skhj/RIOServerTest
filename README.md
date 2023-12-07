@@ -77,6 +77,9 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
 
 ![image](https://github.com/m5623skhj/RIOServerTest/assets/42509418/08b08090-b160-4c16-a3b8-e6f1b719ae6e)
 
+4.2. 스크립트 로딩
+* 지정한 json script들을 로딩하고, 로딩한 데이터들을 키로 찾아올 수 있는 기능
+
 ---
 
 참고 자료
