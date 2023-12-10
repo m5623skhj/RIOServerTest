@@ -81,9 +81,10 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
 * 지정한 json script들을 로딩하고, 로딩한 데이터들을 키로 찾아올 수 있는 기능
 
 4.3. 빌드 출력 파일 경로와 스크립트 데이터
-* 빌드 출력 파일 경로는 솔루션 파일 디렉토리를 기준으로 \..\bin\ 에 출력됩니다. 또한, Config.json이 해당 폴더에 위치해야 합니다.
-* 필요한 스크립트의 경로는 솔루션 파일 디렉토리를 기준으로 \..\Script에 위치해야 합니다.
-* 필요한 스크립트의 데이터 클래스의 경우, ScriptToObject 프로젝트에 정의합니다.
+* 빌드 출력 파일 경로는 솔루션 파일 디렉토리를 기준으로 \..\bin\ 에 출력되며, Config.json이 해당 폴더에 위치해야 함.
+* 필요한 스크립트의 경로는 솔루션 파일 디렉토리를 기준으로 \..\Script에 위치해야 함.
+* 필요한 스크립트의 데이터 클래스의 경우, ScriptToObject 프로젝트에 정의.
+* 스크립트 데이터에 대한 자세한 사항은 [ScriptToObject](https://github.com/m5623skhj/ScriptToObject)의 데이터 등록 방법을 확인할 것.
 
 ---
 
