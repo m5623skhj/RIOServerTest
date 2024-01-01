@@ -21,6 +21,12 @@ RIO를 사용한 서버입니다.
 
 ![Start RIOTestServer   DBClientpng](https://github.com/m5623skhj/RIOServerTest/assets/42509418/58160c6c-0ebf-470b-9890-7461670c3a9e)
 
+아래는 패킷의 송수신의 대략적인 과정입니다.
+
+![RIOBaserServer receive](https://github.com/m5623skhj/RIOServerTest/assets/42509418/5c368a04-99f3-4ce1-a528-a5a72f3e5403)
+
+![RIOBaserServer send](https://github.com/m5623skhj/RIOServerTest/assets/42509418/de342382-2823-4c67-8a4a-4b4cc4b858bd)
+
 ---
 
 2. 패킷 추가 방법
