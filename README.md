@@ -58,6 +58,10 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
   * 내부적으로 현재 진행되고 있는 IO Count로 관리되고 있음
   * IO Count가 0이 되면 연결이 끊긴 것으로 간주하고 세션을 제거함
 
+* IOContext
+  * 어떤 타입의 I/O가 완료 되었는지와 해당 I/O를 요청한 세션이 어떤 세션인지에 대해 기록 되어있는 객체
+  * contextPool에서 할당 및 할당 해제를 진행함
+
 * PacketManager
   * 패킷의 정보를 저장하고 있는 클래스
   * 패킷 핸들러와 패킷 정보를 가지고 있으며, 이 정보들로 송신 받은 NetBuffer를 유저가 정의한 IPacket 상속 객체로 변환하고, 알맞은 PacketHandler를 호출할 수 있도록 함
