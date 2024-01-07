@@ -244,22 +244,12 @@ public:
 #pragma region PacketHandler
 #define REGISTER_PACKET(PacketType){\
 	RegisterPacket<PacketType>();\
+	RegisterPacketHandler<PacketType>();\
 }
-
-#define REGISTER_HANDLER(PacketType)\
-	RegisterPacketHandler<PacketType>();
 
 #define DECLARE_HANDLE_PACKET(PacketType)\
 	static bool HandlePacket(RIOTestSession& session, PacketType& packet);\
 
-#define REGISTER_ALL_HANDLER()\
-	REGISTER_HANDLER(TestStringPacket)\
-	REGISTER_HANDLER(EchoStringPacket)\
-	REGISTER_HANDLER(TestProcedurePacket)\
-	REGISTER_HANDLER(SelectTest2ProcedurePacket)\
-	REGISTER_HANDLER(Ping)\
-	REGISTER_HANDLER(RequestFileStream)\
-	
 #define DECLARE_ALL_HANDLER()\
 	DECLARE_HANDLE_PACKET(TestStringPacket)\
 	DECLARE_HANDLE_PACKET(EchoStringPacket)\
