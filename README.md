@@ -33,9 +33,9 @@ RIO를 사용한 서버입니다.
 
 Protocol.h에 IPacket을 상속 받아서 패킷 클래스를 정의합니다.
 
-이 때, 각 패킷은 GET_PACKET_SIZE(), GET_PACKET_ID() 매크로를 반드시 정의해야합니다.
+이 때, 각 패킷은 GET_PACKET_ID() 매크로를 반드시 정의해야합니다.
 
-이후 REGISTER_ALL_HANDLER()와 DECLARE_ALL_HANDLER(), REGISTER_PACKET_LIST()에 생성한 패킷을 등록하고,
+이후 DECLARE_ALL_HANDLER()와 REGISTER_PACKET_LIST()에 생성한 패킷을 등록하고,
 
 PacketHandler.cpp에서
 
