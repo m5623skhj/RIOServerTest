@@ -74,9 +74,10 @@ PacketManager::HandlePacket(RIOTestSession& session, 정의한 패킷& packet)�
   * 등록된 스레드들에 대해 데드락을 감지하고 정의한 시간 동안 해당 스레드가 갱신되지 않을 시, 강제로 프로그램을 종료시킨다.
   * 현재 Worker들만을 대상으로 하고 있으며, Accepter의 경우, accept()를 blocking 상태로 호출하여 관찰 대상으로 하지 않음
 
-* MultiLanClient
-  * 기존의 [LanClient](https://github.com/m5623skhj/BackupFolder2/tree/master/LanClient)를 수정하여, 하나의 인스턴스에서 여러개의 소켓을 사용하여 다중 클라이언트로 LanServer에 접속할 수 있도록 수정한 클래스
+~~* MultiLanClient~~
 
+  ~~* 기존의 [LanClient](https://github.com/m5623skhj/BackupFolder2/tree/master/LanClient)를 수정하여, 하나의 인스턴스에서 여러개의 소켓을 사용하여 다중 클라이언트로 LanServer에 접속할 수 있도록 수정한 클래스~~
+  
 ---
 
 4. 이후 추가된 기능
