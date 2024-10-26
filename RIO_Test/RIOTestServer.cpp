@@ -311,7 +311,6 @@ void RIOTestServer::Worker(BYTE inThreadId)
 	workerOnList[inThreadId] = true;
 
 	TickSet tickSet;
-	tickSet.nowTick = GetTickCount64();
 	std::function<UINT64()> getUpdatedTickFunc = [&tickSet]()
 	{
 		return tickSet.nowTick;
