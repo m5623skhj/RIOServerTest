@@ -47,6 +47,8 @@ private:
 
 	std::ofstream logFileStream;
 #pragma endregion LogWaitingQueue
+
+	bool isPrintConsole{};
 };
 
 namespace LogHelper

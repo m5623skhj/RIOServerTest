@@ -90,15 +90,10 @@ private:
 	bool InitializeRIO();
 
 private:
-	GUID functionTableId = WSAID_MULTIPLE_RIO;
-
 	RIO_CQ* rioCQList;
 	
-	std::shared_ptr<char> rioSendBuffer = nullptr;
-
 	RIO_NOTIFICATION_COMPLETION rioNotiCompletion;
 	RIO_EXTENSION_FUNCTION_TABLE rioFunctionTable;
-	OVERLAPPED rioCQOverlapped;
 
 	bool* workerOnList;
 #pragma endregion rio

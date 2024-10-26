@@ -1,6 +1,7 @@
 #include "PreCompile.h"
 #include "Logger.h"
 #include "RIOTestServer.h"
+#include <syncstream>
 
 #define LOG_HANDLE  WAIT_OBJECT_0
 #define STOP_HANDLE WAIT_OBJECT_0 + 1
@@ -129,4 +130,10 @@ void Logger::WriteLogToFile(std::shared_ptr<LogBase> logObject)
 {
 	auto logJson = logObject->ObjectToJsonImpl();
 	logFileStream << logJson << '\n';
+
+	if (isPrintConsole == true)
+	{
+		std::osyncstream sync_out(std::cout);
+		sync_out << logJson << std::endl;
+	}
 }
