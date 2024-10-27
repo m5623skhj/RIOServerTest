@@ -316,9 +316,9 @@ void RIOTestServer::Worker(BYTE inThreadId)
 		return tickSet.nowTick;
 	};
 
-	DeadlockChecker::GetInstance().RegisterCheckThread(std::this_thread::get_id(), getUpdatedTickFunc);
 	tickSet.nowTick = GetTickCount64();
 	tickSet.beforeTick = tickSet.nowTick;
+	DeadlockChecker::GetInstance().RegisterCheckThread(std::this_thread::get_id(), getUpdatedTickFunc);
 
 	while (true)
 	{
@@ -546,7 +546,7 @@ bool RIOTestServer::MakeNewSession(SOCKET enteredClientSocket, const std::wstrin
 	}
 	InterlockedIncrement(&newSession->ioCount);
 
-	if (newSession->InitSession(rioFunctionTable, rioNotiCompletion, rioCQList[threadId], rioCQList[threadId]) == false)
+	if (newSession->InitSession(rioFunctionTable, rioCQList[threadId], rioCQList[threadId]) == false)
 	{
 		PrintError("RIOTestServer::MakeNewSession.InitSession", GetLastError());
 		return false;

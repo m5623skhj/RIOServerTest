@@ -21,7 +21,7 @@ RIOTestSession::RIOTestSession(SOCKET inSocket, SessionId inSessionId, BYTE inTh
 	sendItem.reservedBuffer = nullptr;
 }
 
-bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
+bool RIOTestSession::InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ)
 {
 	u_long arg = 1;
 	ioctlsocket(socket, FIONBIO, &arg);

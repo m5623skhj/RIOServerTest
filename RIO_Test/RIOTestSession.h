@@ -26,7 +26,6 @@ struct IOContext : RIO_BUF
 
 struct RecvItem
 {
-	WORD bufferCount = 0;
 	CRingbuffer recvRingBuffer;
 	RIO_BUFFERID recvBufferId;
 };
@@ -51,7 +50,7 @@ public:
 	virtual ~RIOTestSession() = default;
 
 private:
-	bool InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_NOTIFICATION_COMPLETION& rioNotiCompletion, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ);
+	bool InitSession(const RIO_EXTENSION_FUNCTION_TABLE& rioFunctionTable, RIO_CQ& rioRecvCQ, RIO_CQ& rioSendCQ);
 
 public:
 	virtual void OnClientEntered(const std::wstring_view& enteredClientIP) { UNREFERENCED_PARAMETER(enteredClientIP); }
