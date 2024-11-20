@@ -113,7 +113,6 @@ void RIOTestSession::OnRecvPacket(NetBuffer& recvPacket)
 		return;
 	}
 
-	char* targetPtr = reinterpret_cast<char*>(packet.get()) + sizeof(char*);
 	std::any anyPacket = std::any(packet.get());
 	packetHandler(*this, recvPacket, anyPacket);
 }
