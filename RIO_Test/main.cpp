@@ -11,7 +11,7 @@ int main()
 	{
 		PacketManager::GetInst().Init();
 	}
-	DBClient::GetInstance().Start(L"OptionFile/DBClientOptionFile.txt");
+	//DBClient::GetInstance().Start(L"OptionFile/DBClientOptionFile.txt");
 	
 	RIOTestServer& server = RIOTestServer::GetInst();
 	server.StartServer(L"OptionFile/ServerOption.txt");
@@ -28,7 +28,6 @@ int main()
 			break;
 		}
 	}
-	server.StopServer();
 
 	return 0;
 }
