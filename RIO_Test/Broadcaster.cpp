@@ -8,7 +8,7 @@ Broadcaster& Broadcaster::GetInst()
 	return instance;
 }
 
-void Broadcaster::BraodcastToAllSession(IGameAndClientPacket&& packet)
+void Broadcaster::BroadcastToAllSession(IGameAndClientPacket&& packet)
 {
 	NetBuffer* buffer = NetBuffer::Alloc();
 	NetBuffer::AddRefCount(buffer);
@@ -22,7 +22,7 @@ void Broadcaster::BraodcastToAllSession(IGameAndClientPacket&& packet)
 	std::list<SessionId> sessionIdList;
 	packet.PacketToBuffer(*buffer);
 	{
-		std::lock_guard<std::mutex> guardLock(sessionSetLock);
+		std::lock_guard guardLock(sessionSetLock);
 		for (const auto& sessionId : sessionIdSet)
 		{
 			sessionIdList.push_back(sessionId);
@@ -45,32 +45,6 @@ void Broadcaster::BraodcastToAllSession(IGameAndClientPacket&& packet)
 	}
 	NetBuffer::Free(buffer);
 }
-
-// unuse
-/*
-void Broadcaster::BraodcastToAllSession(NetBuffer& packet)
-{
-	NetBuffer::AddRefCount(&packet);
-	{
-		std::lock_guard<std::mutex> guardLock(sessionSetLock);
-		for (const auto& sessionId : sessionIdSet)
-		{
-			auto session = RIOTestServer::GetInst().GetSession(sessionId);
-			if (session == nullptr)
-			{
-				continue;
-			}
-			else if (session->IsReleasedSession() == true)
-			{
-				continue;
-			}
-
-			session->SendPacket(packet);
-		}
-	}
-	NetBuffer::Free(&packet);
-}
-*/
 
 void Broadcaster::OnSessionEntered(SessionId enteredSessionId)
 {

@@ -99,7 +99,7 @@ void Logger::StopLoggerThread()
 void Logger::WriteLogImpl(std::list<std::shared_ptr<LogBase>>& waitingLogList)
 {
 	{
-		std::lock_guard<std::mutex> guardLock(logQueueLock);
+		std::lock_guard guardLock(logQueueLock);
 
 		size_t restSize = logWaitingQueue.size();
 		while (restSize > 0)
@@ -109,7 +109,6 @@ void Logger::WriteLogImpl(std::list<std::shared_ptr<LogBase>>& waitingLogList)
 		}
 	}
 
-	size_t logSize = waitingLogList.size();
 	for (auto& logObject : waitingLogList)
 	{
 		WriteLogToFile(logObject);
@@ -120,7 +119,7 @@ void Logger::WriteLog(std::shared_ptr<LogBase> logObject)
 {
 	logObject->SetLogTime();
 
-	std::lock_guard<std::mutex> guardLock(logQueueLock);
+	std::lock_guard guardLock(logQueueLock);
 	logWaitingQueue.push(logObject);
 	
 	SetEvent(loggerEventHandles[0]);

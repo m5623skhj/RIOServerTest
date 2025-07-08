@@ -22,8 +22,7 @@ public:
 	static Broadcaster& GetInst();
 
 public:
-	void BraodcastToAllSession(IGameAndClientPacket&& packet);
-	//void BraodcastToAllSession(NetBuffer& packet);
+	void BroadcastToAllSession(IGameAndClientPacket&& packet);
 
 private:
 	void OnSessionEntered(SessionId enteredSessionId);

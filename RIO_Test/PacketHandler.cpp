@@ -18,7 +18,7 @@ bool PacketManager::HandlePacket(RIOTestSession& session, TestStringPacket& pack
 	sendPacket.testString = packet.testString;
 
 	session.SendPacket(sendPacket);
-	//Broadcaster::GetInst().BraodcastToAllSession(sendPacket);
+	//Broadcaster::GetInst().BroadcastToAllSession(sendPacket);
 
 	return true;
 }

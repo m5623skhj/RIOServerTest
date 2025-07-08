@@ -32,7 +32,7 @@ public:
 	template <typename PacketType>
 	void RegisterPacket()
 	{
-		static_assert(std::is_base_of<IGameAndClientPacket, PacketType>::value, "RegisterPacket() : PacketType must inherit from IGameAndClientPacket");
+		static_assert(std::is_base_of_v<IGameAndClientPacket, PacketType>, "RegisterPacket() : PacketType must inherit from IGameAndClientPacket");
 		PacketFactoryFunction factoryFunc = []()
 		{
 			return std::make_shared<PacketType>();
@@ -45,7 +45,7 @@ public:
 	template <typename PacketType>
 	void RegisterPacketHandler()
 	{
-		static_assert(std::is_base_of<IGameAndClientPacket, PacketType>::value, "RegisterPacketHandler() : PacketType must inherit from IGameAndClientPacket");
+		static_assert(std::is_base_of_v<IGameAndClientPacket, PacketType>, "RegisterPacketHandler() : PacketType must inherit from IGameAndClientPacket");
 		auto handler = [](RIOTestSession& session, NetBuffer& buffer, std::any& packet)
 		{
 			auto realPacket = static_cast<PacketType*>(std::any_cast<IGameAndClientPacket*>(packet));
